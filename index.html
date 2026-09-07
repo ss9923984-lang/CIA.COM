@@ -1350,6 +1350,12 @@
         .report-images-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:10px}
         .report-images-gallery img{width:100%;height:130px;object-fit:cover;border-radius:5px;border:1px solid #2a3a5c;background:#050811}
         .role-view-badge{border-color:#78909c;color:#b0bec5}
+        .cia-pending-lock{margin:28px auto 0;max-width:620px;padding:28px;text-align:center;border:1px solid #33415f;border-radius:12px;background:rgba(8,14,27,.92);box-shadow:0 0 25px rgba(0,136,255,.08)}
+        .cia-pending-lock .lock-icon{font-size:46px;margin-bottom:10px}
+        .cia-pending-lock h3{color:var(--accent-gold);margin-bottom:10px}
+        .cia-pending-lock p{color:#aebbd0;line-height:1.8}
+        .cia-category-grid.pending-locked{opacity:.35;pointer-events:none;filter:grayscale(.7)}
+
 
 </style>
 
@@ -1527,6 +1533,11 @@
             <p>اختر مجلدًا لفتح القسم الخاص به.</p>
         </div>
         <div class="cia-desktop-badge">BY KARLOS SEIFEDDINE</div>
+    </div>
+    <div id="pendingRoleLock" class="cia-pending-lock" style="display:none;">
+        <div class="lock-icon">🔒</div>
+        <h3>الحساب بانتظار تعيين الرتبة</h3>
+        <p>تم تسجيل دخولك بنجاح، لكن لا توجد رتبة مفعّلة لهذا الحساب حالياً.<br>يجب على ADMIN تعيين <b>CID Member</b> أو <b>VIEW</b> حتى تتمكن من استعمال النظام.</p>
     </div>
 </div>
 
@@ -2017,11 +2028,12 @@
 
                     <div class="input-group">
 
-                        <label>إرفاق صورة (اختياري)</label>
+                        <label>إرفاق صور (اختياري - حتى 8 صور)</label>
 
                         <input type="file"
                                id="reportImage"
-                               accept="image/*">
+                               accept="image/*"
+                               multiple>
 
                     </div>
 
@@ -2450,6 +2462,11 @@
                 label: "VIEW",
                 className: "rank-user",
                 permissions: ["viewRecords","viewAll"]
+            },
+            pending: {
+                label: "بانتظار الرتبة",
+                className: "role-view-badge",
+                permissions: []
             }
         };
 
@@ -2492,6 +2509,8 @@
         let currentAgent = "";
 
         let currentRole = "user";
+        let roleSessionListener = null;
+        let systemListenersStarted = false;
 
         let allReportsCache = [];
 
@@ -2762,7 +2781,7 @@
         }
 
         function isCommander() {
-            return isAdmin() || currentRole === 'cia_commander';
+            return isAdmin();
         }
 
         function canManageRoles() {
@@ -2780,13 +2799,60 @@
         function canEditOwned(item, ownerFields = ['createdBy','addedBy','agent']) {
 
             if (isViewOnly()) return false;
-            if (isCommander()) return true;
+            if (isAdmin()) return true;
             return ownerFields.some(field => item && item[field] === currentAgent);
         }
 
         /* =========================================================
            SESSION
            ========================================================= */
+
+        function normalizeRole(role) {
+            if (role === 'admin') return 'admin';
+            if (role === 'cid_member' || role === 'cia_commander' || role === 'cia_member') return 'cid_member';
+            if (role === 'view') return 'view';
+            return 'pending';
+        }
+
+        function watchAssignedRole(agent) {
+            if (roleSessionListener) {
+                roleSessionListener.off();
+                roleSessionListener = null;
+            }
+            if (!agent || agent === ADMIN_USER) return;
+
+            roleSessionListener = db.ref('users/' + agent + '/role');
+            roleSessionListener.on('value', snapshot => {
+                const newRole = normalizeRole(snapshot.val());
+                if (newRole === currentRole) return;
+                currentRole = newRole;
+
+                const role = ROLES[currentRole] || ROLES.pending;
+                const rankEl = document.getElementById('displayRank');
+                if (rankEl) {
+                    rankEl.innerText = role.label;
+                    rankEl.className = 'rank-badge ' + role.className;
+                }
+
+                const lock = document.getElementById('pendingRoleLock');
+                const grid = document.querySelector('.cia-category-grid');
+                const active = canUseSystem();
+                if (lock) lock.style.display = active ? 'none' : 'block';
+                if (grid) grid.classList.toggle('pending-locked', !active);
+                if (!active) showCategoryHome();
+
+                if (active && !systemListenersStarted) {
+                    systemListenersStarted = true;
+                    listenToUsers();
+                    listenToWanted();
+                    listenToGangs();
+                    initPenalCalculator();
+                }
+
+                updatePermissionUI();
+                updateGangPermissionUI();
+            });
+        }
 
         function setupUserSession(agent, roleOverride = null) {
 
@@ -2796,24 +2862,11 @@
             if (agent === ADMIN_USER) {
                 currentRole = 'admin';
             } else {
-                currentRole = roleOverride === 'cid_member'
-                    ? 'cid_member'
-                    : roleOverride === 'view'
-                        ? 'view'
-                        : roleOverride === 'admin'
-                            ? 'admin'
-                            : 'pending';
+                currentRole = normalizeRole(roleOverride);
             }
-
-            if (!canUseSystem()) {
-                alert('⛔ الحساب غير مفعّل. يجب أن يمنحك ADMIN رتبة CID Member أو VIEW.');
-                if (typeof logout === 'function') logout();
-                return;
-            }
-
 
             const role =
-                ROLES[currentRole] || ROLES.user;
+                ROLES[currentRole] || ROLES.view;
 
 
             document.getElementById('authScreen').style.display =
@@ -2822,8 +2875,12 @@
             document.getElementById('mdtScreen').style.display =
                 'block';
 
-            // بعد تسجيل الدخول: نعرض سطح المكتب والمجلدات فقط.
+            // بعد تسجيل الدخول: نعرض الواجهة للجميع، لكن الحساب pending يبقى مقفلاً.
             showCategoryHome();
+            const pendingLock = document.getElementById('pendingRoleLock');
+            const categoryGrid = document.querySelector('.cia-category-grid');
+            if (pendingLock) pendingLock.style.display = canUseSystem() ? 'none' : 'block';
+            if (categoryGrid) categoryGrid.classList.toggle('pending-locked', !canUseSystem());
 
             document.getElementById('displayAgent').innerText =
                 agent;
@@ -2916,13 +2973,13 @@
             }
 
 
-            listenToUsers();
-
-            listenToWanted();
-
-            listenToGangs();
-
-            initPenalCalculator();
+            if (canUseSystem() && !systemListenersStarted) {
+                systemListenersStarted = true;
+                listenToUsers();
+                listenToWanted();
+                listenToGangs();
+                initPenalCalculator();
+            }
 
             updatePermissionUI();
 
@@ -3038,6 +3095,11 @@
 
         function goToSection(id) {
 
+            if (!canUseSystem()) {
+                alert('🔒 الحساب بانتظار تعيين الرتبة من ADMIN.');
+                return;
+            }
+
             const section = document.getElementById(id);
             if (!section) return;
 
@@ -3078,6 +3140,12 @@
 
         function logout() {
 
+            if (roleSessionListener) {
+                roleSessionListener.off();
+                roleSessionListener = null;
+            }
+            systemListenersStarted = false;
+
             if (currentAgent) {
 
                 db.ref(
@@ -3108,9 +3176,9 @@
 
             currentCriminalProfile = null;
 
-            window.currentUserData = null;
-
             editingGangId = null;
+
+            watchAssignedRole(agent);
 
         }
 
@@ -3143,12 +3211,12 @@
 
 
                         const userRole =
-                            data[agent].role === 'cia_commander' ? 'cia_commander' : 'cia_member';
-
+                            data[agent].role === 'admin' ? 'admin' :
+                            data[agent].role === 'cid_member' || data[agent].role === 'cia_commander' || data[agent].role === 'cia_member' ? 'cid_member' :
+                            data[agent].role === 'view' ? 'view' : 'pending';
 
                         const role =
-                            ROLES[userRole] ||
-                            ROLES.cia_member;
+                            ROLES[userRole] || ROLES.pending;
 
 
 
@@ -4910,51 +4978,38 @@
                 );
 
 
-            const file =
-                fileInput.files[0];
-
-
             const timestamp =
                 new Date().toLocaleString(
                     'ar-EG'
                 );
 
+            const files = Array.from(fileInput.files || []);
+            if (files.length > 8) {
+                alert('❌ الحد الأقصى هو 8 صور لكل تقرير.');
+                return;
+            }
+            if (files.some(file => file.size > 4 * 1024 * 1024)) {
+                alert('❌ كل صورة يجب ألا تتجاوز 4MB.');
+                return;
+            }
 
-            if (file) {
-
-                const reader =
-                    new FileReader();
-
-
-                reader.onload =
-                    function(e) {
-
-                        saveReportToDatabase(
-                            title,
-                            content,
-                            e.target.result,
-                            timestamp,
-                            citizenId,
-                            videoUrl || null
-                        );
-
-                    };
-
-
+            Promise.all(files.map(file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
                 reader.readAsDataURL(file);
-
-            } else {
-
+            }))).then(images => {
                 saveReportToDatabase(
                     title,
                     content,
-                    null,
+                    images[0] || null,
                     timestamp,
                     citizenId,
-                    videoUrl || null
+                    videoUrl || null,
+                    null,
+                    images
                 );
-
-            }
+            }).catch(() => alert('❌ تعذر قراءة إحدى الصور.'));
 
         }
 
@@ -4966,7 +5021,8 @@
             timestamp,
             citizenId = '',
             videoUrl = null,
-            existingReportKey = null
+            existingReportKey = null,
+            images = []
         ) {
 
             const reportRef = existingReportKey
@@ -4978,6 +5034,7 @@
                 title,
                 content,
                 image: imgData,
+                images: Array.isArray(images) && images.length ? images : (imgData ? [imgData] : []),
                 video: videoUrl || null,
                 date: timestamp,
                 citizenId: citizenId || null
@@ -5154,9 +5211,9 @@
 
 
                         ${
-                            rep.image
-                                ? `<img src="${escapeHtmlAttr(rep.image)}" class="report-img">`
-                                : ''
+                            Array.isArray(rep.images) && rep.images.length
+                                ? `<div class="report-images-gallery">${rep.images.map(img => `<img src="${escapeHtmlAttr(img)}" class="report-img">`).join('')}</div>`
+                                : (rep.image ? `<img src="${escapeHtmlAttr(rep.image)}" class="report-img">` : '')
                         }
 
 
@@ -5372,12 +5429,12 @@
 
 
                             const roleKey =
-                                user.role === 'cia_commander' ? 'cia_commander' : 'cia_member';
-
+                                user.role === 'admin' ? 'admin' :
+                                user.role === 'cid_member' || user.role === 'cia_commander' || user.role === 'cia_member' ? 'cid_member' :
+                                user.role === 'view' ? 'view' : 'view';
 
                             const role =
-                                ROLES[roleKey] ||
-                                ROLES.cia_member;
+                                ROLES[roleKey] || ROLES.view;
 
 
                             const li =
