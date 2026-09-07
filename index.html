@@ -1,1 +1,798 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIA - Mobile Data Terminal (MDT)</title>
 
+    <style>
+        :root {
+            --bg-color: #0a0f1d;
+            --panel-bg: #121a2d;
+            --accent-blue: #0088ff;
+            --accent-gold: #d4af37;
+            --text-color: #e0e6ed;
+            --danger-color: #ff4d4d;
+            --success-color: #00e676;
+            --offline-color: #78909c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .auth-container {
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-blue);
+            box-shadow: 0 0 20px rgba(0, 136, 255, 0.2);
+            width: 380px;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #1e2c4a;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            color: #8a9ba8;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--accent-blue);
+        }
+
+        .badge {
+            margin-bottom: 10px;
+        }
+
+        .cia-logo {
+            width: 96px;
+            height: 96px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 0 18px rgba(212, 175, 55, 0.25);
+        }
+
+        .header-logo {
+            width: 46px;
+            height: 46px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 1px solid var(--accent-gold);
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 6px;
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            background: #181102;
+        }
+
+        .rank-superadmin {
+            color: #fff;
+            background: #5b4300;
+        }
+
+        .rank-command {
+            color: #000;
+            background: var(--accent-gold);
+        }
+
+        .rank-officer {
+            color: #fff;
+            background: #145a9c;
+            border-color: #2b9cff;
+        }
+
+        .rank-user {
+            color: #fff;
+            background: #374151;
+            border-color: #64748b;
+        }
+
+        .auth-container h2 {
+            color: var(--accent-gold);
+            margin-bottom: 5px;
+        }
+
+        .auth-container p {
+            font-size: 11px;
+            color: #8a9ba8;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: var(--accent-blue);
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            background: #080d1a;
+            border: 1px solid #1e2c4a;
+            color: #fff;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        button.main-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-blue);
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button.main-btn:hover {
+            background: #0066cc;
+        }
+
+        .msg-box {
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .mdt-container {
+            display: none;
+            width: 95%;
+            max-width: 1300px;
+            background: var(--panel-bg);
+            border: 1px solid #1e2c4a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        header {
+            background: #080d1a;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent-gold);
+        }
+
+        .agent-info span {
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .tools-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .two-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: #0d1526;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #1e2c4a;
+        }
+
+        .panel h3 {
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #1e2c4a;
+            padding-bottom: 5px;
+        }
+
+        .log-box {
+            height: 120px;
+            background: #050811;
+            border: 1px solid #1e2c4a;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            color: var(--success-color);
+        }
+
+        .users-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #080d1a;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border-right: 3px solid var(--offline-color);
+        }
+
+        .user-item.online {
+            border-right-color: var(--success-color);
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: var(--offline-color);
+            margin-left: 5px;
+        }
+
+        .status-dot.online {
+            background-color: var(--success-color);
+            box-shadow: 0 0 8px var(--success-color);
+        }
+
+        .status-text {
+            font-size: 11px;
+            color: #8a9ba8;
+        }
+
+        .wanted-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            max-height: 350px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .wanted-card {
+            background: #080d1a;
+            border: 1px solid var(--danger-color);
+            border-radius: 6px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .wanted-card.medium {
+            border-color: var(--accent-gold);
+        }
+
+        .wanted-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            background: #111;
+        }
+
+        .wanted-card .badge-danger {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--danger-color);
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .wanted-card.medium .badge-danger {
+            background: var(--accent-gold);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .btn-edit {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 3px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-delete {
+            background: var(--danger-color);
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 3px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .charges-list {
+            max-height: 250px;
+            overflow-y: auto;
+            background: #050811;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #1e2c4a;
+        }
+
+        .charge-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #111d33;
+            font-size: 12px;
+        }
+
+        .charge-item input {
+            margin-left: 8px;
+        }
+
+        .calc-results {
+            display: flex;
+            justify-content: space-around;
+            background: #080d1a;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border: 1px solid var(--accent-gold);
+            text-align: center;
+        }
+
+        .calc-results div span {
+            display: block;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        .admin-panel {
+            display: none;
+            background: #181102;
+            border: 1px solid var(--accent-gold);
+            margin-top: 20px;
+        }
+
+        .report-card {
+            background: #080d1a;
+            border: 1px solid #2a3a5c;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .report-img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border: 1px solid #333;
+        }
+
+        .manage-user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #080d1a;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            border: 1px solid #1e2c4a;
+            font-size: 13px;
+        }
+
+        .mdt-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: #0d1526;
+            border: 1px solid #1e2c4a;
+            border-radius: 6px;
+        }
+
+        .mdt-nav button {
+            flex: 1 1 120px;
+            padding: 9px 12px;
+            background: #080d1a;
+            color: #e0e6ed;
+            border: 1px solid #1e2c4a;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .mdt-nav button:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .section-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .criminal-profile {
+            background: #080d1a;
+            border: 1px solid #1e2c4a;
+            border-radius: 6px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        .criminal-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .criminal-stat {
+            background: #0d1526;
+            border: 1px solid #1e2c4a;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .criminal-stat strong {
+            display: block;
+            color: var(--accent-gold);
+            font-size: 18px;
+        }
+
+        .record-item {
+            background: #0d1526;
+            border: 1px solid #1e2c4a;
+            border-right: 3px solid var(--accent-blue);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .record-item.violation {
+            border-right-color: var(--accent-gold);
+        }
+
+        .record-item.memo {
+            border-right-color: #8a9ba8;
+        }
+
+        .record-item.case {
+            border-right-color: var(--danger-color);
+        }
+
+        .record-meta {
+            font-size: 10px;
+            color: #8a9ba8;
+            margin-top: 5px;
+        }
+
+        .record-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        /* =====================================================
+           GANG INTELLIGENCE - إضافة جديدة فقط
+           ===================================================== */
+
+        .gang-panel {
+            background: #0d1526;
+            border: 1px solid #1e2c4a;
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .gang-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .gang-toolbar input {
+            flex: 1;
+            min-width: 180px;
+            padding: 9px;
+            background: #080d1a;
+            border: 1px solid #1e2c4a;
+            color: #fff;
+            border-radius: 4px;
+        }
+
+        .gang-card {
+            background: #080d1a;
+            border: 1px solid #1e2c4a;
+            border-radius: 7px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .gang-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #1e2c4a;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .gang-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--accent-gold);
+            background: #050811;
+        }
+
+        .gang-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        .gang-danger {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .gang-danger.high {
+            background: var(--danger-color);
+            color: #000;
+        }
+
+        .gang-danger.medium {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        .gang-danger.low {
+            background: var(--success-color);
+            color: #000;
+        }
+
+        .gang-members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .gang-member {
+            background: #0d1526;
+            border: 1px solid #1e2c4a;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .gang-member.leader {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.12);
+        }
+
+        .gang-member img {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #1e2c4a;
+            margin-bottom: 7px;
+            background: #050811;
+        }
+
+        .gang-member.leader img {
+            border-color: var(--accent-gold);
+        }
+
+        .gang-member-name {
+            font-weight: bold;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .gang-member-role {
+            color: var(--accent-gold);
+            font-size: 10px;
+            margin-top: 4px;
+        }
+
+        .gang-member-id {
+            color: #8a9ba8;
+            font-size: 9px;
+            margin-top: 3px;
+        }
+
+        .gang-relations {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #1e2c4a;
+        }
+
+        .relation-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #080d1a;
+            border: 1px solid #1e2c4a;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+
+        .relation-arrow {
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        .gang-form {
+            display: none;
+            background: #080d1a;
+            border: 1px solid var(--accent-gold);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .gang-form h4 {
+            color: var(--accent-gold);
+            margin-bottom: 12px;
+        }
+
+        .gang-member-form {
+            background: #0d1526;
+            border: 1px solid #1e2c4a;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .gang-form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .gang-form-actions button {
+            flex: 1;
+        }
+
+        .display-ranks-box {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .display-rank-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #181102;
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .reports-officer-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #063b25;
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .empty-gang {
+            text-align: center;
+            color: #8a9ba8;
+            padding: 25px;
+        }
+
+
+        /* =====================================================
+           CIA DESKTOP / LAPTOP INTERFACE
+           ===================================================== */
+        .cia-boot-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: radial-gradient(circle at center, #111c33 0%, #050914 55%, #02040a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .cia-boot-inner {
+            width: min(920px, 96vw);
+            text-align: center;
+        }
+        .cia-folder-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+        .cia-folder {
+            min-height: 120px;
+            padding: 18px;
+            background: linear-gradient(145deg,#142
