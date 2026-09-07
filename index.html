@@ -1346,7 +1346,12 @@
                 padding-right: 10px;
             }
         }
-    </style>
+    
+        .report-images-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:10px}
+        .report-images-gallery img{width:100%;height:130px;object-fit:cover;border-radius:5px;border:1px solid #2a3a5c;background:#050811}
+        .role-view-badge{border-color:#78909c;color:#b0bec5}
+
+</style>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -2431,57 +2436,21 @@
            ========================================================= */
 
         const ROLES = {
-
             admin: {
                 label: "ADMIN",
                 className: "rank-superadmin",
-                permissions: [
-                    "manageUsers",
-                    "manageRoles",
-                    "managePins",
-                    "manageReports",
-                    "manageWanted",
-                    "manageRecords",
-                    "createReports",
-                    "createWanted",
-                    "createRecords",
-                    "viewRecords",
-                    "viewAll",
-                    "manageGangPlanning",
-                    "createGang"
-                ]
+                permissions: ["manageUsers","manageRoles","managePins","manageReports","manageWanted","manageRecords","createReports","createWanted","createRecords","viewRecords","viewAll","manageGangPlanning","createGang"]
             },
-
-            cia_commander: {
-                label: "CIA Commander",
+            cid_member: {
+                label: "CID Member",
                 className: "rank-command",
-                permissions: [
-                    "manageReports",
-                    "manageWanted",
-                    "manageRecords",
-                    "createReports",
-                    "createWanted",
-                    "createRecords",
-                    "viewRecords",
-                    "viewAll",
-                    "manageGangPlanning",
-                    "createGang"
-                ]
+                permissions: ["createReports","createWanted","createRecords","viewRecords","viewAll","manageGangPlanning","createGang"]
             },
-
-            cia_member: {
-                label: "CIA Member",
+            view: {
+                label: "VIEW",
                 className: "rank-user",
-                permissions: [
-                    "createReports",
-                    "createWanted",
-                    "createRecords",
-                    "viewRecords",
-                    "viewAll",
-                    "createGang"
-                ]
+                permissions: ["viewRecords","viewAll"]
             }
-
         };
 
 
@@ -2680,7 +2649,7 @@
 
                         pin: pin,
 
-                        role: 'cia_member',
+                        role: 'pending',
 
                         online: false,
 
@@ -2771,6 +2740,22 @@
             return currentAgent === ADMIN_USER || currentRole === 'admin';
         }
 
+        function isMember() {
+            return isAdmin() || currentRole === 'cid_member';
+        }
+
+        function isViewOnly() {
+            return currentRole === 'view';
+        }
+
+        function canUseSystem() {
+            return isAdmin() || currentRole === 'cid_member' || currentRole === 'view';
+        }
+
+        function canManageRoles() {
+            return isAdmin();
+        }
+
         function isCommander() {
             return isAdmin() || currentRole === 'cia_commander';
         }
@@ -2788,6 +2773,8 @@
         }
 
         function canEditOwned(item, ownerFields = ['createdBy','addedBy','agent']) {
+
+            if (isViewOnly()) return false;
             if (isCommander()) return true;
             return ownerFields.some(field => item && item[field] === currentAgent);
         }
@@ -2798,15 +2785,23 @@
 
         function setupUserSession(agent, roleOverride = null) {
 
+            if (!isAdmin() && currentRole !== 'cid_member' && currentRole !== 'view') {
+                alert('⛔ الحساب غير مفعّل. يجب أن يمنحك ADMIN رتبة CID Member أو VIEW.');
+                if (typeof logout === 'function') logout();
+                return;
+            }
+
             currentAgent = agent;
 
 
             if (agent === ADMIN_USER) {
                 currentRole = 'admin';
             } else {
-                currentRole = roleOverride === 'cia_commander'
-                    ? 'cia_commander'
-                    : 'cia_member';
+                currentRole = roleOverride === 'cid_member'
+                    ? 'cid_member'
+                    : roleOverride === 'view'
+                        ? 'view'
+                        : 'pending';
             }
 
 
@@ -2933,6 +2928,9 @@
 
             if (isAdmin())
                 listenToManageUsers();
+
+            if (canUseSystem())
+                listenToReports();
 
 
             addLog(
@@ -3225,21 +3223,19 @@
             if (agent === ADMIN_USER)
                 return alert('❌ لا يمكن تعديل رتبة ADMIN.');
 
-            const choice = prompt(
-                `إدارة رتبة ${agent}:\n\n1. CIA Commander\n2. CIA Member\n3. إزالة رتبة Commander (تحويل إلى Member)\n\nاكتب 1 أو 2 أو 3:`
-            );
+            const choice = prompt(`إدارة رتبة ${agent}:\n\n1. CID Member\n2. VIEW\n3. إزالة الصلاحية\n\nاكتب 1 أو 2 أو 3:`);
 
             if (choice === null) return;
 
-            const role =
-                choice === '1'
-                    ? 'cia_commander'
-                    : (choice === '2' || choice === '3')
-                        ? 'cia_member'
+            const role = choice === '1'
+                ? 'cid_member'
+                : choice === '2'
+                    ? 'view'
+                    : choice === '3'
+                        ? 'pending'
                         : null;
 
-            if (!role)
-                return alert('❌ اختيار غير صحيح.');
+            if (!role) return alert('❌ اختيار غير صحيح.');
 
             db.ref('users/' + agent + '/role').set(role, error => {
 
