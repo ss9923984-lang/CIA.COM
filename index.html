@@ -956,7 +956,7 @@
         #authScreen {
             position: relative;
             z-index: 10;
-            display: flex !important;
+            display: flex;
             flex-direction: column;
             justify-content: center;
             width: min(430px, calc(100vw - 28px));
@@ -1121,6 +1121,231 @@
             }
         }
 
+
+        /* =========================================================
+           FINAL DESKTOP WORKSPACE — LOGIN CENTER / FOLDER HOME
+           ========================================================= */
+
+        #authScreen {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        #mdtScreen {
+            display: none;
+            width: min(1440px, calc(100vw - 44px));
+            min-height: min(860px, calc(100vh - 44px));
+            max-height: calc(100vh - 44px);
+            overflow: hidden;
+            border: 1px solid #2a3b5c;
+            border-radius: 16px;
+            box-shadow:
+                0 25px 90px rgba(0,0,0,.75),
+                0 0 0 8px #111722,
+                0 0 0 9px #263247;
+        }
+
+        #mdtScreen header {
+            min-height: 72px;
+            background: linear-gradient(180deg,#0b1322,#070c16);
+        }
+
+        #ciaCategoryHome {
+            display: block;
+            padding: 28px 34px 34px;
+            min-height: calc(100% - 72px);
+        }
+
+        .cia-category-home-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+            padding: 20px 22px;
+            border: 1px solid #263b61;
+            border-radius: 12px;
+            background: linear-gradient(145deg,#111d33,#080e1b);
+            box-shadow: inset 0 0 30px rgba(0,136,255,.035);
+        }
+
+        .cia-kicker {
+            display: block;
+            color: #70839a;
+            font-size: 9px;
+            letter-spacing: 2px;
+            direction: ltr;
+            margin-bottom: 7px;
+        }
+
+        .cia-category-home-head h2 {
+            color: var(--accent-gold);
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .cia-category-home-head p {
+            color: #8191a5;
+            font-size: 12px;
+        }
+
+        .cia-desktop-badge {
+            color: rgba(212,175,55,.78);
+            border: 1px solid rgba(212,175,55,.32);
+            border-radius: 7px;
+            padding: 10px 14px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            direction: ltr;
+            white-space: nowrap;
+        }
+
+        .cia-category-grid {
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 18px;
+            margin: 0;
+        }
+
+        .cia-category {
+            min-height: 145px;
+            padding: 22px;
+            text-align: right;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cia-category::after {
+            content: "OPEN FOLDER  →";
+            position: absolute;
+            left: 16px;
+            bottom: 13px;
+            color: #53657c;
+            font-size: 8px;
+            letter-spacing: 1px;
+            direction: ltr;
+        }
+
+        .cia-category b {
+            font-size: 15px;
+        }
+
+        .cia-category small {
+            font-size: 11px;
+        }
+
+        #ciaWorkspace {
+            display: none;
+            padding: 18px 24px 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 116px);
+            grid-template-columns: 230px minmax(0,1fr);
+        }
+
+        #ciaWorkspace > .cia-back-btn {
+            grid-column: 1 / -1;
+            grid-row: 1;
+        }
+
+        #ciaWorkspace .mdt-nav {
+            grid-column: 1;
+            grid-row: 2 / span 30;
+            margin-top: 8px;
+        }
+
+        #ciaWorkspace .tools-section {
+            grid-column: 2;
+            grid-row: 2;
+            display: contents;
+        }
+
+        #ciaWorkspace .tools-section > * {
+            grid-column: 2;
+        }
+
+        #ciaWorkspace .tools-section > .mdt-nav {
+            grid-column: 1;
+        }
+
+        .cia-back-btn {
+            width: fit-content;
+            padding: 9px 14px;
+            margin-bottom: 2px;
+            border: 1px solid #304666;
+            border-radius: 6px;
+            background: #080e1b;
+            color: #aebbd0;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .cia-back-btn:hover {
+            color: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+
+        @media (max-width: 900px) {
+            #mdtScreen {
+                width: calc(100vw - 20px);
+                min-height: calc(100vh - 20px);
+                max-height: none;
+            }
+
+            #ciaCategoryHome {
+                padding: 18px;
+            }
+
+            .cia-category-home-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cia-category-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            #ciaWorkspace {
+                display: none;
+                grid-template-columns: 1fr;
+                max-height: none;
+            }
+
+            #ciaWorkspace .mdt-nav {
+                grid-column: 1;
+                grid-row: auto;
+            }
+
+            #ciaWorkspace .tools-section > * {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 560px) {
+            #authScreen {
+                width: min(420px, calc(100vw - 22px));
+                padding: 22px 17px;
+            }
+
+            .cia-category-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cia-category {
+                min-height: 105px;
+            }
+
+            #ciaCategoryHome {
+                padding: 12px;
+            }
+
+            #mdtScreen header {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        }
     </style>
 
     <!-- Firebase SDKs -->
@@ -1283,7 +1508,20 @@
     </button>
 </div>
 
-<div class="main-content">
+<div class="cia-category-home" id="ciaCategoryHome">
+    <div class="cia-category-home-head">
+        <div>
+            <span class="cia-kicker">CIA FEDERAL DATA TERMINAL</span>
+            <h2>سطح مكتب نظام CIA</h2>
+            <p>اختر مجلدًا لفتح القسم الخاص به.</p>
+        </div>
+        <div class="cia-desktop-badge">BY KARLOS SEIFEDDINE</div>
+    </div>
+</div>
+
+<div class="main-content" id="ciaWorkspace">
+
+            <button class="cia-back-btn" type="button" onclick="showCategoryHome()">← العودة إلى المجلدات الرئيسية</button>
 
             <div class="tools-section">
 
@@ -1326,7 +1564,7 @@
 
 
                 <!-- COMMAND CENTER -->
-                <div class="panel"
+                <div class="panel" id="commandCenterPanel"
                      style="margin-bottom:15px;border-color:var(--accent-gold);">
 
                     <div class="section-title-bar">
@@ -2555,6 +2793,8 @@
             document.getElementById('mdtScreen').style.display =
                 'block';
 
+            // بعد تسجيل الدخول: نعرض سطح المكتب والمجلدات فقط.
+            showCategoryHome();
 
             document.getElementById('displayAgent').innerText =
                 agent;
@@ -2729,10 +2969,50 @@
             if (auth) auth.style.display = 'flex';
         }
 
+        function showCategoryHome() {
+            const home = document.getElementById('ciaCategoryHome');
+            const workspace = document.getElementById('ciaWorkspace');
+
+            if (workspace) workspace.style.display = 'none';
+            if (home) home.style.display = 'block';
+
+            const sections = [
+                'wantedSection',
+                'criminalSection',
+                'reportsCreateSection',
+                'gangSection',
+                'adminReportsSection',
+                'adminUsersSection',
+                'penaltiesSection',
+                'onlineSection'
+            ];
+
+            sections.forEach(sectionId => {
+                const el = document.getElementById(sectionId);
+                if (el) el.style.display = 'none';
+            });
+
+            const command = document.getElementById('commandCenterPanel');
+            if (command) command.style.display = 'none';
+
+            const nav = document.querySelector('#ciaWorkspace .mdt-nav');
+            if (nav) nav.style.display = 'none';
+        }
+
         function goToSection(id) {
 
             const section = document.getElementById(id);
             if (!section) return;
+
+            if (id === 'adminUsersSection' && !isCommander()) {
+                return;
+            }
+
+            const home = document.getElementById('ciaCategoryHome');
+            const workspace = document.getElementById('ciaWorkspace');
+
+            if (home) home.style.display = 'none';
+            if (workspace) workspace.style.display = 'grid';
 
             const sections = [
                 'wantedSection',
@@ -2750,12 +3030,14 @@
                 if (el) el.style.display = sectionId === id ? 'block' : 'none';
             });
 
-            // قسم الإدارة لا يظهر إلا للـ Commander.
-            if (id === 'adminUsersSection' && !isCommander()) return;
+            const command = document.getElementById('commandCenterPanel');
+            if (command) command.style.display = 'none';
+
+            const nav = document.querySelector('#ciaWorkspace .mdt-nav');
+            if (nav) nav.style.display = 'flex';
 
             section.scrollIntoView({behavior:'smooth', block:'start'});
         }
-
 
         function logout() {
 
@@ -6487,7 +6769,3 @@
 
 </body>
 </html>
-====================== */
-
-        function addLog(message) {
-            const logBox = documen
