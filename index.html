@@ -2456,8 +2456,6 @@
                 label: "CIA Commander",
                 className: "rank-command",
                 permissions: [
-                    "manageUsers",
-                    "managePins",
                     "manageReports",
                     "manageWanted",
                     "manageRecords",
@@ -3038,7 +3036,7 @@
             const section = document.getElementById(id);
             if (!section) return;
 
-            if (id === 'adminUsersSection' && !isCommander()) {
+            if (id === 'adminUsersSection' && !isAdmin()) {
                 return;
             }
 
@@ -3224,28 +3222,101 @@
             if (!isAdmin())
                 return alert('❌ إدارة الرتب متاحة للـ ADMIN فقط.');
 
+            if (agent === ADMIN_USER)
+                return alert('❌ لا يمكن تعديل رتبة ADMIN.');
+
             const choice = prompt(
-                `إدارة رتبة ${agent}:
-
-1. CIA Commander
-2. CIA Member
-3. إزالة الرتبة (CIA Member)
-
-اكتب 1 أو 2 أو 3:`
+                `إدارة رتبة ${agent}:\n\n1. CIA Commander\n2. CIA Member\n3. إزالة رتبة Commander (تحويل إلى Member)\n\nاكتب 1 أو 2 أو 3:`
             );
 
-            const role = choice === '1'
-                ? 'cia_commander'
-                : (choice === '2' || choice === '3')
-                    ? 'cia_member'
-                    : null;
+            if (choice === null) return;
 
-            if (!role) return;
+            const role =
+                choice === '1'
+                    ? 'cia_commander'
+                    : (choice === '2' || choice === '3')
+                        ? 'cia_member'
+                        : null;
 
-            db.ref('users/' + agent + '/role').set(role);
-            addLog(`تم تعيين ${agent} كـ ${ROLES[role].label}`);
-            alert('تم تحديث الرتبة بنجاح.');
+            if (!role)
+                return alert('❌ اختيار غير صحيح.');
 
+            db.ref('users/' + agent + '/role').set(role, error => {
+
+                if (error) {
+                    alert('❌ تعذر تحديث الرتبة.');
+                    return;
+                }
+
+                addLog(
+                    `ADMIN: تم تغيير رتبة ${agent} إلى ${ROLES[role].label}`
+                );
+
+                alert(
+                    `✅ تم تحديث رتبة ${agent} إلى ${ROLES[role].label}.`
+                );
+            });
+        }
+
+        function changeUserPin(agent) {
+
+            if (!isAdmin())
+                return alert('❌ تغيير رموز الدخول متاح للـ ADMIN فقط.');
+
+            if (agent === ADMIN_USER)
+                return alert('❌ لا يمكن تغيير رمز ADMIN من إدارة الأعضاء.');
+
+            const newPin = prompt(
+                `أدخل رمز الدخول الجديد للحساب (${agent}):`
+            );
+
+            if (newPin === null) return;
+
+            const pin = newPin.trim();
+
+            if (!pin)
+                return alert('❌ رمز الدخول لا يمكن أن يكون فارغاً.');
+
+            if (pin.length < 4)
+                return alert('❌ يجب أن يكون رمز الدخول 4 أرقام/أحرف على الأقل.');
+
+            db.ref('users/' + agent + '/pin').set(pin, error => {
+
+                if (error) {
+                    alert('❌ تعذر تغيير الرمز.');
+                    return;
+                }
+
+                addLog(`ADMIN: تم تغيير رمز الدخول للحساب: ${agent}`);
+                alert('✅ تم تغيير رمز الدخول بنجاح.');
+            });
+        }
+
+
+        function deleteUserAccount(agent) {
+
+            if (!isAdmin())
+                return alert('❌ حذف الحسابات متاح للـ ADMIN فقط.');
+
+            if (agent === ADMIN_USER)
+                return alert('❌ لا يمكن حذف حساب ADMIN.');
+
+            const confirmed = confirm(
+                `⚠️ هل أنت متأكد من حذف حساب (${agent}) نهائياً من قاعدة بيانات النظام؟\n\nسيتم حذف بيانات الحساب المخزنة في users.`
+            );
+
+            if (!confirmed) return;
+
+            db.ref('users/' + agent).remove(error => {
+
+                if (error) {
+                    alert('❌ تعذر حذف الحساب.');
+                    return;
+                }
+
+                addLog(`ADMIN: تم حذف حساب العضو: ${agent}`);
+                alert('✅ تم حذف الحساب بنجاح.');
+            });
         }
 
 
@@ -6718,10 +6789,10 @@
             const wantedForm = document.getElementById('addWantedForm');
 
             if (reportSection) reportSection.style.display = 'block';
-            if (usersSection) usersSection.style.display = isCommander() ? 'block' : 'none';
+            if (usersSection) usersSection.style.display = isAdmin() ? 'block' : 'none';
 
             const adminUsersNavButton = document.getElementById('adminUsersNavButton');
-            if (adminUsersNavButton) adminUsersNavButton.style.display = isCommander() ? 'block' : 'none';
+            if (adminUsersNavButton) adminUsersNavButton.style.display = isAdmin() ? 'block' : 'none';
 
             if (criminalCreateButton)
                 criminalCreateButton.style.display = hasPermission('createRecords') ? 'block' : 'none';
