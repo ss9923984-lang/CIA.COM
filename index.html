@@ -795,4 +795,5463 @@
         .cia-folder {
             min-height: 120px;
             padding: 18px;
-            background: linear-gradient(145deg,#142
+            background: linear-gradient(145deg,#14213a,#080e1c);
+            border: 1px solid #263b61;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0,0,0,.35);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            animation: ciaFolderIn .55s both;
+        }
+        .cia-folder:nth-child(2){animation-delay:.08s}.cia-folder:nth-child(3){animation-delay:.16s}
+        .cia-folder:nth-child(4){animation-delay:.24s}.cia-folder:nth-child(5){animation-delay:.32s}.cia-folder:nth-child(6){animation-delay:.40s}
+        .cia-folder span{font-size:30px}.cia-folder strong{color:#e8c95b;letter-spacing:1px}.cia-folder small{color:#8393a8}
+        .cia-byline {
+            color:#fff;
+            font-size:clamp(20px,4vw,34px);
+            font-weight:900;
+            letter-spacing:3px;
+            text-shadow:0 0 20px rgba(212,175,55,.45);
+            animation:ciaByline 1s .55s both;
+        }
+        .cia-loading{height:24px;margin:12px 0 6px;display:flex;justify-content:center;gap:7px}
+        .cia-loading span{width:7px;height:7px;border-radius:50%;background:#d4af37;animation:ciaDot .9s infinite alternate}
+        .cia-loading span:nth-child(2){animation-delay:.2s}.cia-loading span:nth-child(3){animation-delay:.4s}
+        .cia-enter-btn{
+            margin-top:10px;padding:12px 30px;border:1px solid #d4af37;border-radius:6px;
+            background:#181102;color:#e8c95b;font-weight:900;cursor:pointer;
+        }
+        .cia-enter-btn:hover{background:#d4af37;color:#080d1a}
+        .cia-boot-hide{animation:ciaBootOut .45s forwards;pointer-events:none}
+        @keyframes ciaFolderIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+        @keyframes ciaByline{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+        @keyframes ciaDot{to{opacity:.25;transform:translateY(-4px)}}
+        @keyframes ciaBootOut{to{opacity:0;visibility:hidden}}
+
+        .mdt-container{
+            width:min(1500px,96vw);
+            min-height:720px;
+            border:10px solid #151a23;
+            border-bottom-width:26px;
+            border-radius:18px;
+            box-shadow:0 20px 70px rgba(0,0,0,.75), inset 0 0 0 1px #35435a;
+            position:relative;
+        }
+        .mdt-container:after{
+            content:"";
+            position:absolute;
+            bottom:-20px;
+            left:50%;
+            width:70px;
+            height:5px;
+            transform:translateX(-50%);
+            background:#344054;
+            border-radius:4px;
+        }
+        .mdt-nav{
+            align-self:start;
+            position:sticky;
+            top:14px;
+            flex-direction:column;
+            border-radius:10px;
+            padding:10px;
+        }
+        .mdt-nav button{
+            flex:0 0 auto;
+            width:100%;
+            text-align:right;
+            min-height:42px;
+        }
+        .pc-workspace-panel{min-height:300px}
+        #displayRanksHeader{display:none!important}
+        .rank-superadmin,.rank-command{background:#5b4300!important;color:#fff!important;border-color:#d4af37!important}
+        .rank-user,.rank-officer{background:#063b25!important;color:#fff!important;border-color:#00e676!important}
+
+        @media (min-width:901px){
+            .main-content{display:grid;grid-template-columns:230px minmax(0,1fr);gap:16px;align-items:start}
+            .tools-section{display:contents}
+            .main-content > div:last-child{display:contents}
+            .main-content .mdt-nav{grid-column:1;grid-row:1 / span 30}
+            .main-content .tools-section > *,.main-content > div:last-child > *{grid-column:2}
+            .main-content .mdt-nav{grid-column:1!important}
+        }
+
+        @media (max-width: 900px) {
+            .main-content { grid-template-columns: 1fr; }
+            .mdt-nav { position:static; flex-direction:row; }
+            .mdt-nav button { width:auto; flex:1 1 120px; text-align:center; }
+            .cia-folder-grid { grid-template-columns:1fr 1fr; }
+        }
+
+        @media (max-width: 700px) {
+            .cia-folder-grid { grid-template-columns:1fr 1fr; gap:10px; }
+            .cia-folder { min-height:90px; padding:10px; }
+            .criminal-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .two-cols {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+</head>
+
+<body>
+
+    <!-- شاشة البداية الجديدة -->
+    <div id="ciaBootScreen" class="cia-boot-screen">
+        <div class="cia-boot-inner">
+            <div class="cia-folder-grid">
+                <div class="cia-folder"><span>📁</span><strong>REPORTS</strong><small>التقارير</small></div>
+                <div class="cia-folder"><span>📁</span><strong>CASES</strong><small>القضايا</small></div>
+                <div class="cia-folder"><span>📁</span><strong>WANTED</strong><small>المطلوبين</small></div>
+                <div class="cia-folder"><span>📁</span><strong>INTELLIGENCE</strong><small>الاستخبارات</small></div>
+                <div class="cia-folder"><span>📁</span><strong>RECORDS</strong><small>السجلات</small></div>
+                <div class="cia-folder"><span>📁</span><strong>USERS</strong><small>الأعضاء</small></div>
+            </div>
+            <div class="cia-byline">BY KARLOS SEIFEDDINE</div>
+            <div class="cia-loading"><span></span><span></span><span></span></div>
+            <button class="cia-enter-btn" onclick="openCIASystem()">دخول إلى النظام</button>
+        </div>
+    </div>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div class="auth-container" id="authScreen" style="display:none;">
+
+        <div class="badge">
+            <img class="cia-logo"
+                 src="Gemini_Generated_Image_dvb7ntdvb7ntdvb7.jfif"
+                 alt="CIA Logo">
+        </div>
+
+        <h2>CIA FEDERAL MDT</h2>
+        <p>CENTRAL INTELLIGENCE AGENCY</p>
+
+        <div class="tabs">
+            <button class="tab-btn active"
+                    id="loginTab"
+                    onclick="switchTab('login')">
+                تسجيل الدخول
+            </button>
+
+            <button class="tab-btn"
+                    id="registerTab"
+                    onclick="switchTab('register')">
+                إنشاء حساب جديد
+            </button>
+        </div>
+
+        <div id="loginForm">
+
+            <div class="input-group">
+                <label>معرّف العضو (CIA ID)</label>
+                <input type="text"
+                       id="loginAgent"
+                       placeholder="مثال: CIA-402">
+            </div>
+
+            <div class="input-group">
+                <label>رمز الأمان (PIN Code)</label>
+                <input type="password"
+                       id="loginPin"
+                       placeholder="••••">
+            </div>
+
+            <button class="main-btn"
+                    onclick="login()">
+                تسجيل الدخول للنظام
+            </button>
+        </div>
+
+        <div id="registerForm" style="display:none;">
+
+            <div class="input-group">
+                <label>اختر معرّف العضو (CIA ID)</label>
+                <input type="text"
+                       id="regAgent"
+                       placeholder="مثال: CIA-705">
+            </div>
+
+            <div class="input-group">
+                <label>تعيين رمز الأمان (PIN Code)</label>
+                <input type="password"
+                       id="regPin"
+                       placeholder="••••">
+            </div>
+
+            <button class="main-btn"
+                    style="background:var(--accent-gold);color:#000;"
+                    onclick="register()">
+                تسجيل العميل
+            </button>
+        </div>
+
+        <div class="msg-box" id="authMsg"></div>
+    </div>
+
+
+    <!-- لوحة MDT الرئيسية -->
+    <div class="mdt-container" id="mdtScreen">
+
+        <header>
+
+            <div>
+                <img class="header-logo"
+                     src="Gemini_Generated_Image_dvb7ntdvb7ntdvb7.jfif"
+                     alt="CIA Logo">
+
+                <strong>CIA SYSTEM v7.0</strong>
+                |
+                نظام التحكم والاستخبارات
+            </div>
+
+            <div class="agent-info">
+                العضو:
+                <span id="displayAgent">CIA-000</span>
+
+                <span id="displayRank"
+                      class="rank-badge">
+                    CIA Member
+                </span>
+
+                <div id="displayRanksHeader"
+                     class="display-ranks-box"
+                     style="justify-content:flex-end;">
+                </div>
+            </div>
+
+            <button onclick="logout()"
+                    style="padding:5px 15px;background:#333;color:white;border:none;border-radius:4px;cursor:pointer;">
+                تسجيل الخروج
+            </button>
+
+        </header>
+
+
+        <div class="main-content">
+
+            <div class="tools-section">
+
+                <!-- القائمة -->
+                <div class="mdt-nav">
+
+                    <button onclick="goToSection('wantedSection')">
+                        🚨 المطلوبين
+                    </button>
+
+                    <button onclick="goToSection('criminalSection')">
+                        📂 السجل الجنائي
+                    </button>
+
+                    <button onclick="goToSection('reportsCreateSection')">
+                        📝 التقارير
+                    </button>
+
+                    <button onclick="goToSection('gangSection')">
+                        🕵️ مخططات العصابات
+                    </button>
+
+                    <button onclick="goToSection('penaltiesSection')">
+                        ⚖️ العقوبات
+                    </button>
+
+                    <button onclick="goToSection('onlineSection')">
+                        👥 العناصر Online
+                    </button>
+
+                    <button onclick="goToSection('adminReportsSection')">
+                        🗂️ أرشيف CIA
+                    </button>
+
+                    <button onclick="goToSection('adminUsersSection')" style="display:none;" id="adminUsersNavButton">
+                        👑 إدارة CIA
+                    </button>
+
+                </div>
+
+
+                <!-- COMMAND CENTER -->
+                <div class="panel"
+                     style="margin-bottom:15px;border-color:var(--accent-gold);">
+
+                    <div class="section-title-bar">
+
+                        <div>
+
+                            <h3 style="margin-bottom:4px;color:var(--accent-gold);">
+                                🛡️ CIA COMMAND CENTER
+                            </h3>
+
+                            <small style="color:#8a9ba8;">
+                                مركز موحّد لإدارة السجلات والتحقيقات والتقارير
+                            </small>
+
+                        </div>
+
+                        <div style="font-size:11px;color:#8a9ba8;">
+                            استخدم القائمة للوصول السريع إلى أقسام النظام
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     WANTED
+                     ================================================= -->
+
+                <div class="panel" id="wantedSection">
+
+                    <h3 style="color:var(--danger-color);">
+                        🚨 قائمة المطلوبين للعدالة (WANTED LIST)
+                    </h3>
+
+                    <div style="display:flex;gap:10px;margin-bottom:10px;">
+
+                        <input type="text"
+                               id="searchWantedInput"
+                               onkeyup="filterWanted()"
+                               placeholder="البحث باسم المطلوب أو الجريمة..."
+                               style="flex:1;padding:8px;background:#080d1a;border:1px solid #1e2c4a;color:#fff;border-radius:4px;">
+
+                        <button onclick="toggleWantedForm()"
+                                style="padding:8px 15px;background:var(--danger-color);border:none;color:white;font-weight:bold;border-radius:4px;cursor:pointer;">
+                            + إضافة مطلوب
+                        </button>
+
+                    </div>
+
+
+                    <div id="addWantedForm"
+                         style="display:none;background:#080d1a;padding:15px;border-radius:6px;margin-bottom:15px;border:1px solid var(--danger-color);">
+
+                        <div class="two-cols">
+
+                            <div class="input-group">
+                                <label>اسم المشتبه به</label>
+                                <input type="text"
+                                       id="wantedName"
+                                       placeholder="الاسم الكامل">
+                            </div>
+
+                            <div class="input-group">
+                                <label>مستوى الخطورة</label>
+
+                                <select id="wantedDanger">
+
+                                    <option value="high">
+                                        عالي الخطورة (خطر جداً)
+                                    </option>
+
+                                    <option value="medium">
+                                        متوسط الخطورة
+                                    </option>
+
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <div class="input-group">
+
+                            <label>التهمة / السبب</label>
+
+                            <input type="text"
+                                   id="wantedReason"
+                                   placeholder="مثال: سطو مسلح، هروب من العدالة">
+
+                        </div>
+
+                        <div class="input-group">
+
+                            <label>رابط الصورة (اختياري)</label>
+
+                            <input type="text"
+                                   id="wantedImage"
+                                   placeholder="https://example.com/photo.jpg">
+
+                        </div>
+
+                        <button class="main-btn"
+                                style="background:var(--danger-color);"
+                                onclick="submitWanted()">
+                            حفظ وإدراج في قائمة المطلوبين
+                        </button>
+
+                    </div>
+
+
+                    <div class="wanted-grid"
+                         id="wantedList">
+
+                        <p style="color:#8a9ba8;grid-column:1/-1;text-align:center;">
+                            جاري تحميل قائمة المطلوبين...
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- التشفير -->
+                <div class="two-cols">
+
+                    <div class="panel">
+
+                        <h3>🔒 تشفير رسالة</h3>
+
+                        <div class="input-group">
+
+                            <label>الرسالة النصية</label>
+
+                            <textarea id="plainText"
+                                      rows="2"
+                                      placeholder="أدخل النص..."></textarea>
+
+                        </div>
+
+                        <button class="main-btn"
+                                onclick="encryptMessage()">
+                            تشفير
+                        </button>
+
+                    </div>
+
+
+                    <div class="panel">
+
+                        <h3>🔓 فك التشفير</h3>
+
+                        <div class="input-group">
+
+                            <label>الكود المشفر</label>
+
+                            <textarea id="cipherInput"
+                                      rows="2"
+                                      placeholder="أدخل الكود..."></textarea>
+
+                        </div>
+
+                        <button class="main-btn"
+                                style="background:var(--accent-gold);color:#000;"
+                                onclick="decryptMessage()">
+                            فك التشفير
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="input-group">
+
+                        <label>النتيجة الحالية:</label>
+
+                        <input type="text"
+                               id="resultOutput"
+                               readonly
+                               placeholder="النتيجة..."
+                               style="color:var(--accent-gold);font-weight:bold;">
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     CRIMINAL
+                     ================================================= -->
+
+                <div class="panel" id="criminalSection">
+
+                    <h3 style="color:var(--accent-gold);">
+                        📂 السجل الجنائي للمواطنين
+                    </h3>
+
+                    <p style="font-size:11px;color:#8a9ba8;margin-bottom:10px;">
+                        ابحث بالاسم أو Citizen ID لعرض القضايا والمخالفات والمذكرات والتقارير المرتبطة.
+                    </p>
+
+
+                    <div style="display:flex;gap:10px;margin-bottom:10px;">
+
+                        <input type="text"
+                               id="criminalSearchInput"
+                               placeholder="مثال: CIA-102 أو John Doe..."
+                               style="flex:1;padding:8px;background:#080d1a;border:1px solid #1e2c4a;color:#fff;border-radius:4px;"
+                               onkeydown="if(event.key==='Enter') searchCriminalProfile()">
+
+                        <button class="main-btn"
+                                style="width:auto;padding:8px 18px;"
+                                onclick="searchCriminalProfile()">
+                            🔎 بحث
+                        </button>
+
+                    </div>
+
+
+                    <div id="criminalSearchResults"
+                         style="display:none;">
+                    </div>
+
+
+                    <div id="criminalProfilePanel"
+                         class="criminal-profile"
+                         style="display:none;">
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+
+                            <div>
+
+                                <div style="font-size:18px;font-weight:bold;color:#fff;"
+                                     id="criminalProfileName">
+                                    -
+                                </div>
+
+                                <div style="font-size:11px;color:#8a9ba8;">
+                                    Citizen ID:
+                                    <span id="criminalProfileId">-</span>
+                                </div>
+
+                            </div>
+
+                            <span id="criminalProfileStatus"
+                                  class="rank-badge">
+                                عادي
+                            </span>
+
+                        </div>
+
+
+                        <div class="criminal-stats">
+
+                            <div class="criminal-stat">
+                                <strong id="criminalCasesCount">0</strong>
+                                <small>قضايا</small>
+                            </div>
+
+                            <div class="criminal-stat">
+                                <strong id="criminalViolationsCount">0</strong>
+                                <small>مخالفات</small>
+                            </div>
+
+                            <div class="criminal-stat">
+                                <strong id="criminalMemosCount">0</strong>
+                                <small>مذكرات</small>
+                            </div>
+
+                            <div class="criminal-stat">
+                                <strong id="criminalReportsCount">0</strong>
+                                <small>تقارير</small>
+                            </div>
+
+                        </div>
+
+
+                        <div id="criminalRecordAddBox"
+                             style="display:none;background:#0d1526;border:1px solid #1e2c4a;padding:12px;border-radius:5px;margin-bottom:12px;">
+
+                            <h4 style="color:var(--accent-blue);margin-bottom:10px;">
+                                ➕ إضافة سجل
+                            </h4>
+
+                            <div class="two-cols">
+
+                                <div class="input-group">
+
+                                    <label>نوع السجل</label>
+
+                                    <select id="recordType">
+
+                                        <option value="case">
+                                            ⚖️ قضية
+                                        </option>
+
+                                        <option value="violation">
+                                            🚗 مخالفة
+                                        </option>
+
+                                        <option value="memo">
+                                            📝 مذكرة
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <div class="input-group">
+
+                                    <label>العنوان</label>
+
+                                    <input type="text"
+                                           id="recordTitle"
+                                           placeholder="مثال: قضية سرقة">
+
+                                </div>
+
+                            </div>
+
+                            <div class="input-group">
+
+                                <label>التفاصيل</label>
+
+                                <textarea id="recordDetails"
+                                          rows="3"
+                                          placeholder="اكتب تفاصيل السجل..."></textarea>
+
+                            </div>
+
+                            <button class="main-btn"
+                                    onclick="addCriminalRecord()">
+                                حفظ السجل
+                            </button>
+
+                        </div>
+
+
+                        <div id="criminalRecordsList">
+
+                            <p style="color:#8a9ba8;text-align:center;">
+                                لا توجد سجلات.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="criminalCreateBox"
+                         style="display:none;margin-top:12px;background:#0d1526;border:1px solid #1e2c4a;padding:12px;border-radius:5px;">
+
+                        <h4 style="color:var(--accent-blue);margin-bottom:10px;">
+                            👤 إنشاء ملف مواطن
+                        </h4>
+
+                        <div class="two-cols">
+
+                            <div class="input-group">
+
+                                <label>Citizen ID</label>
+
+                                <input type="text"
+                                       id="newCitizenId"
+                                       placeholder="مثال: CIA-102">
+
+                            </div>
+
+                            <div class="input-group">
+
+                                <label>الاسم الكامل</label>
+
+                                <input type="text"
+                                       id="newCitizenName"
+                                       placeholder="الاسم الكامل">
+
+                            </div>
+
+                        </div>
+
+                        <button class="main-btn"
+                                onclick="createCriminalProfile()">
+                            إنشاء الملف
+                        </button>
+
+                    </div>
+
+
+                    <button id="newCriminalBtn"
+                            class="btn-edit"
+                            style="display:none;width:100%;margin-top:10px;padding:9px;"
+                            onclick="toggleCriminalCreate()">
+                        + إنشاء ملف مواطن جديد
+                    </button>
+
+                </div>
+
+
+                <!-- =================================================
+                     REPORTS
+                     ================================================= -->
+
+                <div class="panel"
+                     id="reportsCreateSection">
+
+                    <h3>📝 رفع تقرير ميداني جديد</h3>
+
+                    <div class="input-group">
+
+                        <label>عنوان / اسم التقرير</label>
+
+                        <input type="text"
+                               id="reportTitle"
+                               placeholder="مثال: تقرير قضية سرقة 104">
+
+                    </div>
+
+                    <div class="input-group">
+
+                        <label>تفاصيل التقرير</label>
+
+                        <textarea id="reportContent"
+                                  rows="3"
+                                  placeholder="اكتب تفاصيل التقرير بالتفصيل..."></textarea>
+
+                    </div>
+
+                    <div class="input-group">
+
+                        <label>Citizen ID المرتبط بالتقرير (اختياري)</label>
+
+                        <input type="text"
+                               id="reportCitizenId"
+                               placeholder="مثال: CIA-102">
+
+                    </div>
+
+                    <div class="input-group">
+
+                        <label>إرفاق صورة (اختياري)</label>
+
+                        <input type="file"
+                               id="reportImage"
+                               accept="image/*">
+
+                    </div>
+
+                    <div class="input-group">
+
+                        <label>🎥 رابط فيديو كدليل (اختياري)</label>
+
+                        <input type="url"
+                               id="reportVideoUrl"
+                               placeholder="https://example.com/video.mp4">
+
+                        <small style="display:block;color:#8a9ba8;margin-top:6px;">
+                            الفيديو اختياري. ضع رابط الفيديو فقط، ولن يتم رفع الفيديو أو تخزينه في Firebase.
+                        </small>
+
+                    </div>
+
+                    <button class="main-btn"
+                            onclick="submitReport()">
+                        إرسال التقرير للقيادة
+                    </button>
+
+                </div>
+
+
+                <!-- =================================================
+                     🕵️ GANG INTELLIGENCE
+                     ================================================= -->
+
+                <div class="panel"
+                     id="gangSection">
+
+                    <div class="section-title-bar">
+
+                        <div>
+
+                            <h3 style="color:var(--accent-gold);">
+                                🕵️ GANG INTELLIGENCE
+                            </h3>
+
+                            <small style="color:#8a9ba8;">
+                                مخططات العصابات والارتباطات التنظيمية
+                            </small>
+
+                        </div>
+
+                        <span class="reports-officer-badge"
+                              id="gangPermissionBadge">
+                            👁️ عرض فقط
+                        </span>
+
+                    </div>
+
+
+                    <div class="gang-toolbar">
+
+                        <input type="text"
+                               id="gangSearchInput"
+                               placeholder="البحث باسم العصابة..."
+                               onkeyup="filterGangs()">
+
+                        <button id="addGangButton"
+                                class="main-btn"
+                                style="width:auto;background:var(--accent-gold);color:#000;"
+                                onclick="toggleGangForm()">
+                            + إنشاء مخطط
+                        </button>
+
+                    </div>
+
+
+                    <!-- نموذج إنشاء العصابة -->
+                    <div id="gangForm"
+                         class="gang-form">
+
+                        <h4>
+                            🕵️ إنشاء مخطط عصابة جديد
+                        </h4>
+
+
+                        <div class="two-cols">
+
+                            <div class="input-group">
+
+                                <label>اسم العصابة</label>
+
+                                <input type="text"
+                                       id="gangName"
+                                       placeholder="مثال: The Vipers">
+
+                            </div>
+
+
+                            <div class="input-group">
+
+                                <label>مستوى الخطورة</label>
+
+                                <select id="gangDanger">
+
+                                    <option value="high">
+                                        عالي
+                                    </option>
+
+                                    <option value="medium">
+                                        متوسط
+                                    </option>
+
+                                    <option value="low">
+                                        منخفض
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>رابط شعار / صورة العصابة</label>
+
+                            <input type="text"
+                                   id="gangImage"
+                                   placeholder="https://example.com/gang.jpg">
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>منطقة النشاط</label>
+
+                            <input type="text"
+                                   id="gangArea"
+                                   placeholder="منطقة النشاط">
+
+                        </div>
+
+
+                        <div class="input-group">
+
+                            <label>ملاحظات التحقيق</label>
+
+                            <textarea id="gangNotes"
+                                      rows="3"
+                                      placeholder="ملاحظات ومعلومات إضافية..."></textarea>
+
+                        </div>
+
+
+                        <h4>
+                            👑 القائد / Boss
+                        </h4>
+
+
+                        <div class="gang-member-form">
+
+                            <div class="two-cols">
+
+                                <div class="input-group">
+
+                                    <label>اسم الـ Boss</label>
+
+                                    <input type="text"
+                                           id="gangBossName"
+                                           placeholder="اسم القائد">
+
+                                </div>
+
+                                <div class="input-group">
+
+                                    <label>Citizen ID</label>
+
+                                    <input type="text"
+                                           id="gangBossId"
+                                           placeholder="Citizen ID">
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="input-group">
+
+                                <label>صورة الـ Boss</label>
+
+                                <input type="text"
+                                       id="gangBossImage"
+                                       placeholder="رابط الصورة">
+
+                            </div>
+
+                        </div>
+
+
+                        <h4>
+                            👥 أفراد العصابة
+                        </h4>
+
+
+                        <div id="gangMembersFormContainer"></div>
+
+
+                        <button class="btn-edit"
+                                style="width:100%;padding:8px;margin-bottom:10px;"
+                                onclick="addGangMemberForm()">
+                            + إضافة فرد
+                        </button>
+
+
+                        <h4>
+                            🔗 العلاقات
+                        </h4>
+
+
+                        <div id="gangRelationsFormContainer"></div>
+
+
+                        <button class="btn-edit"
+                                style="width:100%;padding:8px;margin-bottom:10px;"
+                                onclick="addGangRelationForm()">
+                            + إضافة علاقة
+                        </button>
+
+
+                        <div class="gang-form-actions">
+
+                            <button class="main-btn"
+                                    onclick="saveGang()">
+                                💾 حفظ المخطط
+                            </button>
+
+                            <button class="btn-delete"
+                                    onclick="cancelGangForm()">
+                                إلغاء
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="gangList">
+
+                        <div class="empty-gang">
+                            جاري تحميل مخططات العصابات...
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ADMIN REPORTS -->
+
+                <div class="panel admin-panel"
+                     id="adminReportsSection">
+
+                    <h3 style="color:var(--accent-gold);">
+                        👑 أرشيف التقارير الفدرالية
+                    </h3>
+
+                    <div class="input-group">
+
+                        <label>
+                            البحث بالعميل أو برقم/عنوان التقرير:
+                        </label>
+
+                        <input type="text"
+                               id="searchReportInput"
+                               onkeyup="filterReports()"
+                               placeholder="اكتب اسم العميل أو عنوان التقرير...">
+
+                    </div>
+
+                    <div id="reportsList">
+
+                        <p style="color:#8a9ba8;text-align:center;">
+                            جاري تحميل التقارير السرية...
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ADMIN USERS -->
+
+                <div class="panel admin-panel"
+                     id="adminUsersSection">
+
+                    <h3 style="color:var(--accent-gold);">
+                        👤 إدارة حسابات وصلاحيات العناصر
+                    </h3>
+
+                    <div id="manageUsersList">
+
+                        <p style="color:#8a9ba8;text-align:center;">
+                            جاري تحميل قائمة الحسابات...
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <h3>
+                        📊 سجل الميدان (Log)
+                    </h3>
+
+                    <div class="log-box"
+                         id="systemLog">
+                        [SYSTEM READY]: تم الاتصال بنجاح.<br>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- الجانب الأيسر -->
+
+            <div>
+
+                <!-- العقوبات -->
+
+                <div class="panel"
+                     id="penaltiesSection"
+                     style="margin-bottom:20px;">
+
+                    <h3 style="color:var(--accent-gold);">
+                        ⚖️ حاسبة العقوبات والغرامات
+                    </h3>
+
+                    <p style="font-size:11px;color:#8a9ba8;margin-bottom:10px;">
+                        حدد التهم الموجهة للمشتبه به للحساب التلقائي:
+                    </p>
+
+                    <div class="charges-list"
+                         id="chargesContainer">
+                    </div>
+
+                    <div class="calc-results">
+
+                        <div>
+
+                            <small style="color:#8a9ba8;">
+                                إجمالي السجن
+                            </small>
+
+                            <span id="totalJail">
+                                0 شهر
+                            </span>
+
+                        </div>
+
+                        <div>
+
+                            <small style="color:#8a9ba8;">
+                                إجمالي الغرامة
+                            </small>
+
+                            <span id="totalFine">
+                                $0
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ONLINE -->
+
+                <div class="panel"
+                     id="onlineSection">
+
+                    <h3>
+                        👥 حالة عناصر القطاع
+                    </h3>
+
+                    <ul class="users-list"
+                        id="usersList">
+
+                        <li style="text-align:center;color:#8a9ba8;padding:20px;">
+                            جاري تحميل القائمة...
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const ADMIN_USER = "KARLOS SEIFEDDINE";
+        const ADMIN_PIN = "OUSSAMA2010";
+
+
+        /* =========================================================
+           نظام الرتب والصلاحيات القديم + الإضافة الجديدة
+           ========================================================= */
+
+        const ROLES = {
+
+            cia_commander: {
+                label: "CIA Commander",
+                className: "rank-command",
+                permissions: [
+                    "manageUsers",
+                    "manageRoles",
+                    "managePins",
+                    "manageReports",
+                    "manageWanted",
+                    "manageRecords",
+                    "createReports",
+                    "createWanted",
+                    "createRecords",
+                    "viewRecords",
+                    "viewAll",
+                    "manageGangPlanning",
+                    "createGang"
+                ]
+            },
+
+            cia_member: {
+                label: "CIA Member",
+                className: "rank-user",
+                permissions: [
+                    "createReports",
+                    "createWanted",
+                    "createRecords",
+                    "viewRecords",
+                    "viewAll",
+                    "createGang"
+                ]
+            }
+
+        };
+
+
+        /*
+         * CIA Access:
+         * صلاحية مستقلة عن الرتب الأساسية.
+         */
+        const SPECIAL_PERMISSIONS = {};
+        const DISPLAY_RANKS = []; 
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyCYeYJsyfxvn43GxwEs66uh0LvPWPXbhGU",
+
+            authDomain: "cid-mdt.firebaseapp.com",
+
+            databaseURL: "https://cid-mdt-default-rtdb.firebaseio.com",
+
+            projectId: "cid-mdt",
+
+            storageBucket: "cid-mdt.firebasestorage.app",
+
+            messagingSenderId: "889731546251",
+
+            appId: "1:889731546251:web:d339d50c2a667615eba88e",
+
+            measurementId: "G-R8Q5DGCYMM"
+
+        };
+
+
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.database();
+
+        const storage = firebase.storage();
+
+
+        let currentAgent = "";
+
+        let currentRole = "user";
+
+        let allReportsCache = [];
+
+        let allWantedCache = [];
+
+        let currentCriminalId = "";
+
+        let currentCriminalProfile = null;
+
+        let allGangsCache = [];
+
+        let editingGangId = null;
+
+
+        /* =========================================================
+           PENAL CODE
+           ========================================================= */
+
+        const penalCode = [
+
+            { id: 4, name: "قطع الاشارة", jail: 0, fine: 1500 },
+            { id: 5, name: "تجاوز السرعة", jail: 0, fine: 2000 },
+            { id: 6, name: "وقوف خاطئ", jail: 0, fine: 1000 },
+            { id: 7, name: "عكس السير", jail: 0, fine: 1000 },
+            { id: 8, name: "الالتفاف بشكل خاطئ", jail: 0, fine: 500 },
+            { id: 9, name: "القيادة المتهورة", jail: 0, fine: 2000 },
+            { id: 10, name: "عدم استخدام إشارة المركبة", jail: 0, fine: 600 },
+            { id: 11, name: "عدم حمل هوية", jail: 10, fine: 5000 },
+            { id: 12, name: "عدم حمل رخصة قيادة", jail: 5, fine: 5000 },
+            { id: 13, name: "القيادة تحت تأثير المسكرات", jail: 0, fine: 1050 },
+            { id: 14, name: "عدم الالتزام بالمركبة + تعريض حياة المواطنين للخطر", jail: 0, fine: 2500 },
+            { id: 15, name: "السباقات غير القانونية", jail: 0, fine: 8000 },
+            { id: 16, name: "الترفيع بالدراجة النارية", jail: 0, fine: 1500 },
+            { id: 17, name: "تدمير ممتلكات الدولة", jail: 0, fine: 300 },
+            { id: 18, name: "الهروب من الشرطة", jail: 25, fine: 4000 },
+
+            { id: 20, name: "التسول", jail: 20, fine: 0 },
+            { id: 21, name: "مخالفة ذوق عام", jail: 20, fine: 2500 },
+            { id: 22, name: "إزعاج المواطنين", jail: 10, fine: 1050 },
+            { id: 23, name: "إزعاج السلطات", jail: 25, fine: 2100 },
+            { id: 24, name: "استهزاء برجال الأمن", jail: 30, fine: 10000 },
+            { id: 25, name: "عدم الانصياع إلى أوامر الشرطة", jail: 25, fine: 6000 },
+            { id: 26, name: "بلاغ كاذب", jail: 15, fine: 6000 },
+            { id: 27, name: "التدخل بشؤون الشرطة", jail: 5, fine: 10000 },
+            { id: 28, name: "تحرش", jail: 20, fine: 2500 },
+            { id: 29, name: "إهانة رجل أمن", jail: 40, fine: 10000 },
+            { id: 30, name: "محاولة الرشوة", jail: 20, fine: 3500 },
+            { id: 31, name: "الرشوة", jail: 30, fine: 5000 },
+            { id: 32, name: "شهادة الزور", jail: 0, fine: 5000 },
+            { id: 33, name: "الابتزاز", jail: 10, fine: 10000 },
+            { id: 34, name: "عدم الإلتزام بأدوات السلامة", jail: 0, fine: 600 },
+            { id: 35, name: "المقاومة أثناء الإعتقال", jail: 15, fine: 3500 },
+            { id: 36, name: "عدم إحترام المحامي", jail: 50, fine: 10000 },
+            { id: 37, name: "الاشتباك بالأيادي", jail: 10, fine: 2500 },
+            { id: 38, name: "إنتحال الشخصية", jail: 20, fine: 12500 },
+
+            { id: 40, name: "التجارة بالسلاح من الدرجة الأولى", jail: 10, fine: 10000 },
+            { id: 41, name: "التجارة بالسلاح من الدرجة الثانية", jail: 20, fine: 20000 },
+            { id: 42, name: "التجارة بالسلاح من الدرجة الثالثة", jail: 30, fine: 40000 },
+            { id: 43, name: "سلاح غير ترخيص", jail: 45, fine: 3500 },
+            { id: 44, name: "سلاح غير قانوني - السلاح الثقيل", jail: 60, fine: 5000 },
+            { id: 45, name: "إخراج سلاح", jail: 20, fine: 1500 },
+            { id: 46, name: "حمل (Grabbler)", jail: 75, fine: 50000 },
+
+            { id: 48, name: "إسقاط مواطن", jail: 20, fine: 5000 },
+            { id: 49, name: "إسقاط بلا عمد", jail: 15, fine: 1500 },
+            { id: 50, name: "محاولة إسقاط مواطن", jail: 15, fine: 3000 },
+            { id: 51, name: "إصابة شرطي", jail: 25, fine: 10000 },
+            { id: 52, name: "محاولة إصابة شرطي", jail: 15, fine: 5000 },
+
+            { id: 54, name: "ترويج مخدرات من الدرجة الأولى", jail: 10, fine: 5000 },
+            { id: 55, name: "ترويج مخدرات من الدرجة الثانية", jail: 15, fine: 10000 },
+            { id: 56, name: "حيازة مخدرات", jail: 15, fine: 3000 },
+            { id: 57, name: "تجارة الممنوعات", jail: 20, fine: 3500 },
+            { id: 58, name: "حيازة الممنوعات من الدرجة الأولى", jail: 17, fine: 1000 },
+            { id: 59, name: "حيازة الممنوعات من الدرجة الثانية", jail: 18, fine: 2500 },
+            { id: 60, name: "حيازة الممنوعات من الدرجة الثالثة", jail: 19, fine: 10000 },
+
+            { id: 62, name: "الدخول للمنشآت العسكرية", jail: 10, fine: 18500 },
+            { id: 63, name: "إطلاق أعيرة نارية", jail: 15, fine: 7500 },
+            { id: 64, name: "محاولة اختطاف", jail: 20, fine: 3500 },
+            { id: 65, name: "اختطاف", jail: 30, fine: 5000 },
+            { id: 66, name: "اختطاف رجل الدولة", jail: 35, fine: 10000 },
+            { id: 67, name: "قتال الشوارع", jail: 20, fine: 7500 },
+            { id: 68, name: "محاولة تهريب مجرم", jail: 0, fine: 5000 },
+            { id: 69, name: "تهريب مجرم", jail: 0, fine: 10000 },
+            { id: 70, name: "الهروب من السجن", jail: 0, fine: 0 },
+            { id: 71, name: "حمل بطاقة غير عائدة له", jail: 5, fine: 10000 },
+            { id: 72, name: "سرقة المواطنين", jail: 20, fine: 2500 },
+            { id: 73, name: "سرقة سيارة", jail: 15, fine: 5000 },
+            { id: 74, name: "سرقة بقالة", jail: 15, fine: 5000 },
+            { id: 75, name: "سرقة الصراف الآلي (ATM)", jail: 15, fine: 12500 },
+            { id: 76, name: "سرقة البوب كات", jail: 25, fine: 15000 },
+            { id: 77, name: "سرقة مصرف", jail: 30, fine: 18500 },
+            { id: 78, name: "سرقة المجوهرات", jail: 40, fine: 70000 },
+            { id: 79, name: "سرقة بنك بوليتو", jail: 50, fine: 85000 },
+            { id: 80, name: "سرقة البنك المركزي", jail: 60, fine: 100000 }
+
+        ];
+
+
+        /* =========================================================
+           AUTH
+           ========================================================= */
+
+        function switchTab(type) {
+
+            document.getElementById('loginForm').style.display =
+                type === 'login' ? 'block' : 'none';
+
+            document.getElementById('registerForm').style.display =
+                type === 'register' ? 'block' : 'none';
+
+            document.getElementById('loginTab').classList.toggle(
+                'active',
+                type === 'login'
+            );
+
+            document.getElementById('registerTab').classList.toggle(
+                'active',
+                type === 'register'
+            );
+
+            document.getElementById('authMsg').style.display = 'none';
+        }
+
+
+        function register() {
+
+            const agent =
+                document.getElementById('regAgent').value.trim();
+
+            const pin =
+                document.getElementById('regPin').value.trim();
+
+            if (!agent || !pin)
+                return showMsg(
+                    'يرجى ملء جميع الحقول!',
+                    'var(--danger-color)'
+                );
+
+
+            db.ref('users/' + agent).once('value', snapshot => {
+
+                if (snapshot.exists()) {
+
+                    showMsg(
+                        'المعرّف مستخدم بالفعل!',
+                        'var(--danger-color)'
+                    );
+
+                } else {
+
+                    db.ref('users/' + agent).set({
+
+                        pin: pin,
+
+                        role: 'cia_member',
+
+                        online: false,
+
+                        lastSeen: Date.now(),
+
+                        displayRanks: [],
+
+                        reportsOfficer: false
+
+                    });
+
+                    showMsg(
+                        'تم إنشاء الحساب بنجاح!',
+                        'var(--success-color)'
+                    );
+
+                    setTimeout(
+                        () => switchTab('login'),
+                        1200
+                    );
+
+                }
+
+            });
+
+        }
+
+
+        function login() {
+
+            const agent =
+                document.getElementById('loginAgent').value.trim();
+
+            const pin =
+                document.getElementById('loginPin').value.trim();
+
+
+            if (agent === ADMIN_USER && pin === ADMIN_PIN) {
+
+                setupUserSession(ADMIN_USER);
+
+                return;
+            }
+
+
+            db.ref('users/' + agent).once('value', snapshot => {
+
+                const userData = snapshot.val();
+
+                if (userData && userData.pin === pin) {
+
+                    setupUserSession(
+                        agent,
+                        userData.role || 'officer'
+                    );
+
+                } else {
+
+                    showMsg(
+                        'بيانات الدخول غير صحيحة!',
+                        'var(--danger-color)'
+                    );
+
+                }
+
+            });
+
+        }
+
+
+        function hasPermission(permission) {
+
+            if (
+                ROLES[currentRole] &&
+                ROLES[currentRole].permissions.includes(permission)
+            ) {
+                return true;
+            }
+
+            return false;
+        }
+
+
+        /*
+         * CIA Access
+         */
+        function isCommander() {
+            return currentAgent === ADMIN_USER || currentRole === 'cia_commander';
+        }
+
+        function isReportsOfficer() {
+            return isCommander();
+        }
+
+        function canManageGangPlanning() {
+            return hasPermission('createGang');
+        }
+
+        function canEditOwned(item, ownerFields = ['createdBy','addedBy','agent']) {
+            if (isCommander()) return true;
+            return ownerFields.some(field => item && item[field] === currentAgent);
+        }
+
+        /* =========================================================
+           SESSION
+           ========================================================= */
+
+        function setupUserSession(agent, roleOverride = null) {
+
+            currentAgent = agent;
+
+
+            if (agent === ADMIN_USER) {
+
+                currentRole = 'cia_commander';
+
+            } else {
+
+                currentRole = roleOverride === 'cia_commander'
+                    ? 'cia_commander'
+                    : 'cia_member';
+
+            }
+
+
+            const role =
+                ROLES[currentRole] || ROLES.user;
+
+
+            document.getElementById('authScreen').style.display =
+                'none';
+
+            document.getElementById('mdtScreen').style.display =
+                'block';
+
+
+            document.getElementById('displayAgent').innerText =
+                agent;
+
+
+            const rankEl =
+                document.getElementById('displayRank');
+
+
+            rankEl.innerText =
+                role.label;
+
+            rankEl.className =
+                'rank-badge ' + role.className;
+
+
+            /*
+             * جلب بيانات المستخدم الإضافية
+             */
+            db.ref('users/' + agent).once(
+                'value',
+                snapshot => {
+
+                    window.currentUserData =
+                        snapshot.val() || {};
+
+                    if (agent === ADMIN_USER) {
+
+                        window.currentUserData.reportsOfficer =
+                            true;
+
+                    }
+
+                    renderCurrentDisplayRanks();
+
+                    updatePermissionUI();
+
+                    updateGangPermissionUI();
+
+                }
+            );
+
+
+            const userStatusRef =
+                db.ref('users/' + currentAgent + '/online');
+
+
+            userStatusRef.set(true);
+
+            userStatusRef.onDisconnect().set(false);
+
+
+            if (agent === ADMIN_USER) {
+
+                db.ref('users/' + ADMIN_USER).update({
+
+                    role: 'cia_commander',
+
+                    online: true,
+
+                    lastSeen: Date.now(),
+
+                    reportsOfficer: true
+
+                });
+
+                db.ref(
+                    'users/' +
+                    ADMIN_USER +
+                    '/online'
+                ).onDisconnect().set(false);
+
+            } else {
+
+                db.ref('users/' + currentAgent).update({
+
+                    role: currentRole,
+
+                    online: true,
+
+                    lastSeen: Date.now()
+
+                });
+
+            }
+
+
+            listenToUsers();
+
+            listenToWanted();
+
+            listenToGangs();
+
+            initPenalCalculator();
+
+            updatePermissionUI();
+
+            updateGangPermissionUI();
+
+
+            // كل أعضاء CIA يستطيعون مشاهدة أرشيف التقارير.
+            listenToReports();
+
+
+            if (isCommander())
+                listenToManageUsers();
+
+
+            addLog(
+                "تم تسجيل الدخول: " +
+                agent +
+                " | الرتبة: " +
+                role.label
+            );
+
+        }
+
+
+        function renderCurrentDisplayRanks() {
+            const container = document.getElementById('displayRanksHeader');
+            if (container) container.innerHTML = '';
+        }
+
+        function updateGangPermissionUI() {
+
+            const addButton =
+                document.getElementById(
+                    'addGangButton'
+                );
+
+            const badge =
+                document.getElementById(
+                    'gangPermissionBadge'
+                );
+
+
+            if (!addButton || !badge)
+                return;
+
+
+            if (canManageGangPlanning()) {
+
+                addButton.style.display =
+                    'block';
+
+                badge.innerText =
+                    '🛡️ CIA ACCESS';
+
+                badge.style.color =
+                    'var(--success-color)';
+
+            } else {
+
+                addButton.style.display =
+                    'none';
+
+                badge.innerText =
+                    '👁️ عرض فقط';
+
+                badge.style.color =
+                    '#8a9ba8';
+
+            }
+
+        }
+
+
+        function openCIASystem() {
+            const boot = document.getElementById('ciaBootScreen');
+            if (!boot) return;
+            boot.classList.add('cia-boot-hide');
+            setTimeout(() => {
+                boot.style.display = 'none';
+                document.getElementById('authScreen').style.display = 'block';
+            }, 450);
+        }
+
+        function goToSection(id) {
+
+            const section = document.getElementById(id);
+            if (!section) return;
+
+            const sections = [
+                'wantedSection',
+                'criminalSection',
+                'reportsCreateSection',
+                'gangSection',
+                'adminReportsSection',
+                'adminUsersSection',
+                'penaltiesSection',
+                'onlineSection'
+            ];
+
+            sections.forEach(sectionId => {
+                const el = document.getElementById(sectionId);
+                if (el) el.style.display = sectionId === id ? 'block' : 'none';
+            });
+
+            // قسم الإدارة لا يظهر إلا للـ Commander.
+            if (id === 'adminUsersSection' && !isCommander()) return;
+
+            section.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+
+        function logout() {
+
+            if (currentAgent) {
+
+                db.ref(
+                    'users/' +
+                    currentAgent
+                ).update({
+
+                    online: false,
+
+                    lastSeen: Date.now()
+
+                });
+
+            }
+
+
+            document.getElementById(
+                'mdtScreen'
+            ).style.display = 'none';
+
+
+            document.getElementById(
+                'authScreen'
+            ).style.display = 'block';
+
+
+            currentCriminalId = '';
+
+            currentCriminalProfile = null;
+
+            window.currentUserData = null;
+
+            editingGangId = null;
+
+        }
+
+
+        /* =========================================================
+           ADMIN USERS
+           ========================================================= */
+
+        function listenToManageUsers() {
+
+            db.ref('users').on(
+                'value',
+                snapshot => {
+
+                    const container =
+                        document.getElementById(
+                            'manageUsersList'
+                        );
+
+                    container.innerHTML = '';
+
+                    const data =
+                        snapshot.val() || {};
+
+
+                    for (let agent in data) {
+
+                        if (agent === ADMIN_USER)
+                            continue;
+
+
+                        const userRole =
+                            data[agent].role === 'cia_commander' ? 'cia_commander' : 'cia_member';
+
+
+                        const role =
+                            ROLES[userRole] ||
+                            ROLES.cia_member;
+
+
+
+
+
+                        const div =
+                            document.createElement('div');
+
+
+                        div.className =
+                            'manage-user-item';
+
+
+                        div.innerHTML = `
+
+                            <div>
+
+                                <strong>
+                                    👤 ${escapeHtml(agent)}
+                                </strong>
+
+                                <span class="rank-badge ${role.className}">
+                                    ${escapeHtml(role.label)}
+                                </span>
+
+                                <span style="font-size:11px;color:#8a9ba8;margin-right:10px;">
+                                    متصل:
+                                    ${data[agent].online ? 'نعم' : 'لا'}
+                                </span>
+
+                            </div>
+
+
+                            <div>
+
+                                <button class="btn-edit"
+                                        onclick="changeUserRole('${escapeHtmlAttr(agent)}')">
+                                    ⭐ تعيين CIA Commander / Member
+                                </button>
+
+                                <button class="btn-edit"
+                                        onclick="changeUserPin('${escapeHtmlAttr(agent)}')">
+                                    🔑 تغيير الرمز
+                                </button>
+
+                                <button class="btn-delete"
+                                        onclick="deleteUserAccount('${escapeHtmlAttr(agent)}')">
+                                    🗑️ حذف الحساب
+                                </button>
+
+                            </div>
+
+                        `;
+
+
+                        container.appendChild(div);
+
+                    }
+
+
+                    if (container.children.length === 0) {
+
+                        container.innerHTML =
+                            '<p style="color:#8a9ba8;text-align:center;">لا يوجد أعضاء آخرين حالياً.</p>';
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        function changeUserRole(agent) {
+
+            if (!isCommander())
+                return alert('❌ إدارة الرتب متاحة لـ CIA Commander فقط.');
+
+            const choice = prompt(
+                `اختيار رتبة ${agent}:\n\n1. CIA Commander\n2. CIA Member\n\nاكتب 1 أو 2:`
+            );
+
+            const role = choice === '1'
+                ? 'cia_commander'
+                : choice === '2'
+                    ? 'cia_member'
+                    : null;
+
+            if (!role) return;
+
+            db.ref('users/' + agent + '/role').set(role);
+            addLog(`تم تعيين ${agent} كـ ${ROLES[role].label}`);
+            alert('تم تحديث الرتبة بنجاح.');
+
+        }
+
+
+        function filterGangs() {
+
+            const query =
+                document.getElementById(
+                    'gangSearchInput'
+                ).value
+                .trim()
+                .toLowerCase();
+
+
+            const filtered =
+                allGangsCache.filter(
+                    gang =>
+
+                        String(
+                            gang.name ||
+                            ''
+                        )
+                            .toLowerCase()
+                            .includes(query)
+
+                        ||
+
+                        String(
+                            gang.area ||
+                            ''
+                        )
+                            .toLowerCase()
+                            .includes(query)
+
+                        ||
+
+                        String(
+                            gang.boss &&
+                            gang.boss.name ||
+                            ''
+                        )
+                            .toLowerCase()
+                            .includes(query)
+
+                );
+
+
+            renderGangs(
+                filtered
+            );
+
+        }
+
+
+        function editGang(
+            id
+        ) {
+
+            if (!canManageGangPlanning())
+                return alert(
+                    '❌ فقط Reports Officer يستطيع تعديل المخططات.'
+                );
+
+
+            const gang =
+                allGangsCache.find(
+                    g =>
+                        g.id === id
+                );
+
+
+            if (!gang)
+                return alert(
+                    'المخطط غير موجود.'
+                );
+
+
+            editingGangId =
+                id;
+
+
+            document.getElementById(
+                'gangForm'
+            ).style.display =
+                'block';
+
+
+            document.getElementById(
+                'gangName'
+            ).value =
+                gang.name || '';
+
+
+            document.getElementById(
+                'gangDanger'
+            ).value =
+                gang.danger || 'medium';
+
+
+            document.getElementById(
+                'gangImage'
+            ).value =
+                gang.image || '';
+
+
+            document.getElementById(
+                'gangArea'
+            ).value =
+                gang.area || '';
+
+
+            document.getElementById(
+                'gangNotes'
+            ).value =
+                gang.notes || '';
+
+
+            document.getElementById(
+                'gangBossName'
+            ).value =
+                gang.boss &&
+                gang.boss.name ||
+                '';
+
+
+            document.getElementById(
+                'gangBossId'
+            ).value =
+                gang.boss &&
+                gang.boss.citizenId ||
+                '';
+
+
+            document.getElementById(
+                'gangBossImage'
+            ).value =
+                gang.boss &&
+                gang.boss.image ||
+                '';
+
+
+            document.getElementById(
+                'gangMembersFormContainer'
+            ).innerHTML =
+                '';
+
+
+            const members =
+                Array.isArray(
+                    gang.members
+                )
+                    ? gang.members
+                    : [];
+
+
+            members
+                .filter(
+                    m =>
+                        !(
+                            m.isLeader &&
+                            gang.boss &&
+                            m.name ===
+                            gang.boss.name
+                        )
+                )
+                .forEach(
+                    member => {
+
+                        addGangMemberForm(
+                            member
+                        );
+
+                    }
+                );
+
+
+            document.getElementById(
+                'gangRelationsFormContainer'
+            ).innerHTML =
+                '';
+
+
+            const relations =
+                Array.isArray(
+                    gang.relations
+                )
+                    ? gang.relations
+                    : [];
+
+
+            relations.forEach(
+                relation => {
+
+                    addGangRelationForm(
+                        relation
+                    );
+
+                }
+            );
+
+
+            goToSection(
+                'gangSection'
+            );
+
+        }
+
+
+        function deleteGang(
+            id,
+            name
+        ) {
+
+            if (!canManageGangPlanning())
+                return alert(
+                    '❌ فقط Reports Officer يستطيع حذف المخططات.'
+                );
+
+
+            if (
+                !confirm(
+                    `هل أنت متأكد من حذف مخطط العصابة (${name})؟`
+                )
+            )
+                return;
+
+
+            db.ref(
+                'gangs/' +
+                id
+            ).remove(
+                error => {
+
+                    if (error) {
+
+                        alert(
+                            'تعذر حذف المخطط.'
+                        );
+
+                        return;
+
+                    }
+
+
+                    addLog(
+                        `تم حذف مخطط العصابة: ${name}`
+                    );
+
+
+                    alert(
+                        'تم حذف المخطط بنجاح.'
+                    );
+
+                }
+            );
+
+        }
+
+
+        
+/* =========================================================
+           CIA ROLES ONLY
+           ========================================================= */
+
+        /* =========================================================
+           WANTED
+           ========================================================= */
+
+        function toggleWantedForm() {
+
+            const form =
+                document.getElementById(
+                    'addWantedForm'
+                );
+
+
+            form.style.display =
+                form.style.display === 'none'
+                    ? 'block'
+                    : 'none';
+
+        }
+
+
+        function submitWanted() {
+
+            if (!hasPermission('createWanted'))
+                return alert(
+                    '❌ لا تملك صلاحية إضافة مطلوبين.'
+                );
+
+
+            const name =
+                document.getElementById(
+                    'wantedName'
+                ).value.trim();
+
+
+            const danger =
+                document.getElementById(
+                    'wantedDanger'
+                ).value;
+
+
+            const reason =
+                document.getElementById(
+                    'wantedReason'
+                ).value.trim();
+
+
+            const img =
+                document.getElementById(
+                    'wantedImage'
+                ).value.trim()
+                ||
+                'https://via.placeholder.com/150/080d1a/8a9ba8?text=NO+IMAGE';
+
+
+            if (!name || !reason) {
+
+                alert(
+                    'يرجى ملء اسم المشتبه به والتهمة!'
+                );
+
+                return;
+
+            }
+
+
+            const wantedRef =
+                db.ref('wanted').push();
+
+
+            wantedRef.set({
+
+                id: wantedRef.key,
+
+                name: name,
+
+                danger: danger,
+
+                reason: reason,
+
+                image: img,
+
+                addedBy: currentAgent,
+
+                date:
+                    new Date().toLocaleDateString(
+                        'ar-EG'
+                    )
+
+            }, error => {
+
+                if (!error) {
+
+                    alert(
+                        'تمت إضافة الشخص إلى قائمة المطلوبين بنجاح!'
+                    );
+
+
+                    document.getElementById(
+                        'wantedName'
+                    ).value = '';
+
+
+                    document.getElementById(
+                        'wantedReason'
+                    ).value = '';
+
+
+                    document.getElementById(
+                        'wantedImage'
+                    ).value = '';
+
+
+                    toggleWantedForm();
+
+
+                    addLog(
+                        'تمت إضافة مطلوب جديد: ' +
+                        name
+                    );
+
+                }
+
+            });
+
+        }
+
+
+        function listenToWanted() {
+
+            db.ref('wanted').on(
+                'value',
+                snapshot => {
+
+                    const data =
+                        snapshot.val() || {};
+
+
+                    allWantedCache = [];
+
+
+                    for (let id in data) {
+
+                        allWantedCache.push(
+                            data[id]
+                        );
+
+                    }
+
+
+                    renderWanted(
+                        allWantedCache
+                    );
+
+                }
+            );
+
+        }
+
+
+        function renderWanted(list) {
+
+            const container =
+                document.getElementById(
+                    'wantedList'
+                );
+
+
+            container.innerHTML = '';
+
+
+            if (list.length === 0) {
+
+                container.innerHTML =
+                    '<p style="color:#8a9ba8;grid-column:1/-1;text-align:center;">لا يوجد مطلوبين حالياً.</p>';
+
+                return;
+
+            }
+
+
+            [...list].reverse().forEach(
+                item => {
+
+                    const card =
+                        document.createElement(
+                            'div'
+                        );
+
+
+                    card.className =
+                        `wanted-card ${item.danger}`;
+
+
+                    let adminControls = '';
+
+
+                    if (canEditOwned(item, ['addedBy','createdBy'])) {
+
+                        adminControls = `
+
+                            <div class="action-btns">
+
+                                <button class="btn-edit"
+                                        onclick="editWanted('${escapeHtmlAttr(item.id)}','${escapeHtmlAttr(item.name)}','${escapeHtmlAttr(item.reason)}')">
+                                    ✏️ تعديل
+                                </button>
+
+                                <button class="btn-delete"
+                                        onclick="removeWanted('${escapeHtmlAttr(item.id)}','${escapeHtmlAttr(item.name)}')">
+                                    🗑️ حذف
+                                </button>
+
+                            </div>
+
+                        `;
+
+                    }
+
+
+                    card.innerHTML = `
+
+                        <span class="badge-danger">
+                            ${item.danger === 'high'
+                                ? 'خطر جداً'
+                                : 'متوسط'}
+                        </span>
+
+                        <img src="${escapeHtmlAttr(item.image)}"
+                             alt="Wanted">
+
+                        <div style="font-weight:bold;color:#fff;font-size:14px;margin-bottom:4px;">
+                            ${escapeHtml(item.name)}
+                        </div>
+
+                        <div style="font-size:11px;color:#8a9ba8;margin-bottom:8px;">
+                            <strong>التهمة:</strong>
+                            ${escapeHtml(item.reason)}
+                        </div>
+
+                        ${adminControls}
+
+                    `;
+
+
+                    container.appendChild(
+                        card
+                    );
+
+                }
+            );
+
+        }
+
+
+        function editWanted(id, oldName, oldReason) {
+
+            db.ref('wanted/' + id).once('value', snapshot => {
+
+                const item = snapshot.val() || {};
+
+                if (!canEditOwned(item, ['addedBy','createdBy'])) {
+                    alert('❌ يمكنك تعديل المطلوبين الذين أضفتهم فقط.');
+                    return;
+                }
+
+                const newName = prompt('تعديل اسم المطلوب:', oldName);
+                const newReason = prompt('تعديل التهمة والسبب:', oldReason);
+
+                if (newName && newReason) {
+                    db.ref('wanted/' + id).update({
+                        name: newName,
+                        reason: newReason,
+                        updatedBy: currentAgent,
+                        updatedAt: Date.now()
+                    });
+                    addLog(`تم تعديل بيانات المطلوب: ${newName}`);
+                }
+
+            });
+        }
+
+
+        function removeWanted(id, name) {
+
+            db.ref('wanted/' + id).once('value', snapshot => {
+
+                const item = snapshot.val() || {};
+
+                if (!canEditOwned(item, ['addedBy','createdBy'])) {
+                    alert('❌ يمكنك حذف المطلوبين الذين أضفتهم فقط.');
+                    return;
+                }
+
+                if (confirm(`هل أنت متأكد من إزالة (${name}) من قائمة المطلوبين؟`)) {
+                    db.ref('wanted/' + id).remove();
+                    addLog('تم إزالة المطلوب: ' + name);
+                }
+
+            });
+        }
+
+
+        function filterWanted() {
+
+            const query =
+                document.getElementById(
+                    'searchWantedInput'
+                ).value.toLowerCase();
+
+
+            const filtered =
+                allWantedCache.filter(
+                    w =>
+                        String(w.name || '')
+                            .toLowerCase()
+                            .includes(query)
+                        ||
+                        String(w.reason || '')
+                            .toLowerCase()
+                            .includes(query)
+                );
+
+
+            renderWanted(
+                filtered
+            );
+
+        }
+
+
+        /* =========================================================
+           PENALTY
+           ========================================================= */
+
+        function initPenalCalculator() {
+
+            const container =
+                document.getElementById(
+                    'chargesContainer'
+                );
+
+
+            container.innerHTML = '';
+
+
+            penalCode.forEach(
+                item => {
+
+                    const div =
+                        document.createElement(
+                            'div'
+                        );
+
+
+                    div.className =
+                        'charge-item';
+
+
+                    div.innerHTML = `
+
+                        <label style="cursor:pointer;">
+
+                            <input type="checkbox"
+                                   value="${item.id}"
+                                   onchange="calculatePenalty()">
+
+                            ${escapeHtml(item.name)}
+
+                        </label>
+
+                        <span style="color:#8a9ba8;font-size:10px;">
+
+                            ${item.jail > 0
+                                ? item.jail + 'شهر'
+                                : ''}
+
+                            ${item.fine > 0
+                                ? '$' + item.fine
+                                : ''}
+
+                        </span>
+
+                    `;
+
+
+                    container.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+        }
+
+
+        function calculatePenalty() {
+
+            let totalJail = 0;
+
+            let totalFine = 0;
+
+
+            const checkboxes =
+                document.querySelectorAll(
+                    '#chargesContainer input[type="checkbox"]:checked'
+                );
+
+
+            checkboxes.forEach(
+                cb => {
+
+                    const id =
+                        parseInt(
+                            cb.value
+                        );
+
+
+                    const charge =
+                        penalCode.find(
+                            c =>
+                                c.id === id
+                        );
+
+
+                    if (charge) {
+
+                        totalJail +=
+                            charge.jail;
+
+                        totalFine +=
+                            charge.fine;
+
+                    }
+
+                }
+            );
+
+
+            document.getElementById(
+                'totalJail'
+            ).innerText =
+                totalJail +
+                " شهر";
+
+
+            document.getElementById(
+                'totalFine'
+            ).innerText =
+                "$" +
+                totalFine.toLocaleString();
+
+        }
+
+
+        /* =========================================================
+           CRIMINAL
+           ========================================================= */
+
+        function toggleCriminalCreate() {
+
+            const box =
+                document.getElementById(
+                    'criminalCreateBox'
+                );
+
+
+            box.style.display =
+                box.style.display === 'none'
+                    ? 'block'
+                    : 'none';
+
+        }
+
+
+        function createCriminalProfile() {
+
+            if (!hasPermission('createRecords'))
+                return alert(
+                    '❌ لا تملك صلاحية إنشاء ملفات المواطنين.'
+                );
+
+
+            const id =
+                document.getElementById(
+                    'newCitizenId'
+                ).value
+                .trim()
+                .toUpperCase();
+
+
+            const name =
+                document.getElementById(
+                    'newCitizenName'
+                ).value.trim();
+
+
+            if (!id || !name)
+                return alert(
+                    'يرجى إدخال Citizen ID والاسم.'
+                );
+
+
+            db.ref(
+                'citizens/' +
+                id
+            ).once(
+                'value',
+                snapshot => {
+
+                    if (snapshot.exists()) {
+
+                        alert(
+                            'هذا Citizen ID موجود بالفعل.'
+                        );
+
+                        return;
+
+                    }
+
+
+                    db.ref(
+                        'citizens/' +
+                        id
+                    ).set({
+
+                        citizenId: id,
+
+                        name: name,
+
+                        status: 'normal',
+
+                        createdBy: currentAgent,
+
+                        createdAt:
+                            new Date().toLocaleString(
+                                'ar-EG'
+                            )
+
+                    }, error => {
+
+                        if (error) {
+
+                            alert(
+                                'حدث خطأ أثناء إنشاء الملف.'
+                            );
+
+                            return;
+
+                        }
+
+
+                        addLog(
+                            `تم إنشاء ملف مواطن: ${id}`
+                        );
+
+
+                        document.getElementById(
+                            'newCitizenId'
+                        ).value = '';
+
+
+                        document.getElementById(
+                            'newCitizenName'
+                        ).value = '';
+
+
+                        toggleCriminalCreate();
+
+
+                        openCriminalProfile(
+                            id
+                        );
+
+                    });
+
+                }
+            );
+
+        }
+
+
+        function searchCriminalProfile() {
+
+            const query =
+                document.getElementById(
+                    'criminalSearchInput'
+                ).value
+                .trim()
+                .toLowerCase();
+
+
+            if (!query)
+                return alert(
+                    'اكتب الاسم أو Citizen ID للبحث.'
+                );
+
+
+            db.ref('citizens').once(
+                'value',
+                snapshot => {
+
+                    const data =
+                        snapshot.val() || {};
+
+
+                    const results = [];
+
+
+                    Object.keys(data).forEach(
+                        id => {
+
+                            const citizen =
+                                data[id];
+
+
+                            if (
+
+                                String(
+                                    citizen.citizenId ||
+                                    id
+                                )
+                                    .toLowerCase()
+                                    .includes(query)
+
+                                ||
+
+                                String(
+                                    citizen.name ||
+                                    ''
+                                )
+                                    .toLowerCase()
+                                    .includes(query)
+
+                            ) {
+
+                                results.push(
+                                    citizen
+                                );
+
+                            }
+
+                        }
+                    );
+
+
+                    const box =
+                        document.getElementById(
+                            'criminalSearchResults'
+                        );
+
+
+                    box.style.display =
+                        'block';
+
+
+                    if (!results.length) {
+
+                        box.innerHTML = `
+
+                            <div style="padding:10px;color:#8a9ba8;background:#080d1a;border:1px solid #1e2c4a;border-radius:4px;">
+
+                                لا يوجد ملف مطابق.
+
+                                ${
+                                    hasPermission('createRecords')
+                                        ? 'يمكنك إنشاء ملف جديد بالأسفل.'
+                                        : ''
+                                }
+
+                            </div>
+
+                        `;
+
+                        return;
+
+                    }
+
+
+                    box.innerHTML =
+                        results.map(
+                            c => `
+
+                                <button onclick="openCriminalProfile('${escapeHtmlAttr(c.citizenId)}')"
+                                        style="display:block;width:100%;text-align:right;padding:10px;margin-bottom:6px;background:#080d1a;color:#fff;border:1px solid #1e2c4a;border-radius:4px;cursor:pointer;">
+
+                                    <strong>
+                                        ${escapeHtml(c.name)}
+                                    </strong>
+
+                                    <span style="color:#8a9ba8;font-size:11px;">
+                                        —
+                                        ${escapeHtml(c.citizenId)}
+                                    </span>
+
+                                </button>
+
+                            `
+                        ).join('');
+
+                }
+            );
+
+        }
+
+
+        function openCriminalProfile(
+            citizenId
+        ) {
+
+            currentCriminalId =
+                citizenId;
+
+
+            db.ref(
+                'citizens/' +
+                citizenId
+            ).once(
+                'value',
+                snapshot => {
+
+                    if (!snapshot.exists())
+                        return alert(
+                            'الملف غير موجود.'
+                        );
+
+
+                    currentCriminalProfile =
+                        snapshot.val();
+
+
+                    document.getElementById(
+                        'criminalSearchResults'
+                    ).style.display =
+                        'none';
+
+
+                    document.getElementById(
+                        'criminalProfilePanel'
+                    ).style.display =
+                        'block';
+
+
+                    document.getElementById(
+                        'criminalProfileName'
+                    ).innerText =
+                        currentCriminalProfile.name ||
+                        '-';
+
+
+                    document.getElementById(
+                        'criminalProfileId'
+                    ).innerText =
+                        currentCriminalProfile.citizenId ||
+                        citizenId;
+
+
+                    document.getElementById(
+                        'criminalProfileStatus'
+                    ).innerText =
+                        currentCriminalProfile.status ||
+                        'عادي';
+
+
+                    document.getElementById(
+                        'criminalRecordAddBox'
+                    ).style.display =
+                        hasPermission(
+                            'createRecords'
+                        )
+                            ? 'block'
+                            : 'none';
+
+
+                    loadCriminalRecords(
+                        citizenId
+                    );
+
+                }
+            );
+
+        }
+
+
+        function loadCriminalRecords(
+            citizenId
+        ) {
+
+            db.ref(
+                'citizens/' +
+                citizenId +
+                '/records'
+            ).once(
+                'value',
+                snapshot => {
+
+                    const data =
+                        snapshot.val() || {};
+
+
+                    const records =
+                        Object.keys(data)
+                            .map(
+                                id => ({
+                                    ...data[id],
+                                    id
+                                })
+                            );
+
+
+                    const cases =
+                        records.filter(
+                            r =>
+                                r.type === 'case'
+                        ).length;
+
+
+                    const violations =
+                        records.filter(
+                            r =>
+                                r.type === 'violation'
+                        ).length;
+
+
+                    const memos =
+                        records.filter(
+                            r =>
+                                r.type === 'memo'
+                        ).length;
+
+
+                    document.getElementById(
+                        'criminalCasesCount'
+                    ).innerText =
+                        cases;
+
+
+                    document.getElementById(
+                        'criminalViolationsCount'
+                    ).innerText =
+                        violations;
+
+
+                    document.getElementById(
+                        'criminalMemosCount'
+                    ).innerText =
+                        memos;
+
+
+                    const list =
+                        document.getElementById(
+                            'criminalRecordsList'
+                        );
+
+
+                    if (!records.length) {
+
+                        list.innerHTML =
+                            '<p style="color:#8a9ba8;text-align:center;">لا توجد قضايا أو مخالفات أو مذكرات.</p>';
+
+                    } else {
+
+                        records.sort(
+                            (a, b) =>
+                                (
+                                    b.createdAtMs ||
+                                    0
+                                )
+                                -
+                                (
+                                    a.createdAtMs ||
+                                    0
+                                )
+                        );
+
+
+                        list.innerHTML =
+                            records.map(
+                                record => {
+
+                                    const label =
+                                        record.type === 'case'
+                                            ? '⚖️ قضية'
+                                            : record.type === 'violation'
+                                                ? '🚗 مخالفة'
+                                                : '📝 مذكرة';
+
+
+                                    const actionButtons =
+                                        canEditOwned(record, ['createdBy'])
+                                            ? `
+
+                                                <div class="record-actions">
+
+                                                    <button class="btn-edit"
+                                                            onclick="editCriminalRecord('${escapeHtmlAttr(record.id)}','${escapeHtmlAttr(record.title || '')}',\`${escapeJs(record.details || '')}\`)">
+                                                        ✏️ تعديل
+                                                    </button>
+
+                                                    <button class="btn-delete"
+                                                            onclick="deleteCriminalRecord('${escapeHtmlAttr(record.id)}')">
+                                                        🗑️ حذف
+                                                    </button>
+
+                                                </div>
+
+                                            `
+                                            : '';
+
+
+                                    return `
+
+                                        <div class="record-item ${record.type}">
+
+                                            <strong style="color:var(--accent-blue);">
+                                                ${label}
+                                                —
+                                                ${escapeHtml(record.title || 'بدون عنوان')}
+                                            </strong>
+
+                                            <p style="white-space:pre-wrap;margin-top:6px;font-size:12px;">
+                                                ${escapeHtml(record.details || '')}
+                                            </p>
+
+                                            <div class="record-meta">
+                                                👮
+                                                ${escapeHtml(record.createdBy || '-')}
+                                                · 📅
+                                                ${escapeHtml(record.createdAt || '-')}
+                                            </div>
+
+                                            ${actionButtons}
+
+                                        </div>
+
+                                    `;
+
+                                }
+                            ).join('');
+
+                    }
+
+
+                    db.ref('reports')
+                        .orderByChild('citizenId')
+                        .equalTo(citizenId)
+                        .once(
+                            'value',
+                            reportSnap => {
+
+                                const reportData =
+                                    reportSnap.val() || {};
+
+
+                                const reports =
+                                    Object.values(
+                                        reportData
+                                    );
+
+
+                                document.getElementById(
+                                    'criminalReportsCount'
+                                ).innerText =
+                                    reports.length;
+
+
+                                if (reports.length) {
+
+                                    const reportHtml = `
+
+                                        <div style="margin-top:12px;border-top:1px solid #1e2c4a;padding-top:10px;">
+
+                                            <h4 style="color:var(--accent-gold);margin-bottom:8px;">
+                                                📑 التقارير المرتبطة
+                                            </h4>
+
+                                            ${reports.map(
+                                                r => `
+
+                                                    <div class="record-item">
+
+                                                        <strong>
+                                                            ${escapeHtml(r.title || 'تقرير')}
+                                                        </strong>
+
+                                                        <p style="white-space:pre-wrap;margin-top:5px;font-size:12px;">
+                                                            ${escapeHtml(r.content || '')}
+                                                        </p>
+
+                                                        <div class="record-meta">
+                                                            👮
+                                                            ${escapeHtml(r.agent || '-')}
+                                                            · 📅
+                                                            ${escapeHtml(r.date || '-')}
+                                                        </div>
+
+                                                    </div>
+
+                                                `
+                                            ).join('')}
+
+                                        </div>
+
+                                    `;
+
+
+                                    list.innerHTML +=
+                                        reportHtml;
+
+                                }
+
+                            }
+                        );
+
+                }
+            );
+
+        }
+
+
+        function addCriminalRecord() {
+
+            if (!hasPermission('createRecords'))
+                return alert(
+                    '❌ لا تملك صلاحية إضافة سجلات.'
+                );
+
+
+            if (!currentCriminalId)
+                return alert(
+                    'اختر ملف مواطن أولاً.'
+                );
+
+
+            const type =
+                document.getElementById(
+                    'recordType'
+                ).value;
+
+
+            const title =
+                document.getElementById(
+                    'recordTitle'
+                ).value.trim();
+
+
+            const details =
+                document.getElementById(
+                    'recordDetails'
+                ).value.trim();
+
+
+            if (!title || !details)
+                return alert(
+                    'يرجى إدخال العنوان والتفاصيل.'
+                );
+
+
+            const ref =
+                db.ref(
+                    'citizens/' +
+                    currentCriminalId +
+                    '/records'
+                ).push();
+
+
+            ref.set({
+
+                type,
+
+                title,
+
+                details,
+
+                createdBy:
+                    currentAgent,
+
+                createdAt:
+                    new Date().toLocaleString(
+                        'ar-EG'
+                    ),
+
+                createdAtMs:
+                    Date.now()
+
+            }, error => {
+
+                if (error) {
+
+                    alert(
+                        'تعذر حفظ السجل.'
+                    );
+
+                    return;
+
+                }
+
+
+                addLog(
+                    `تمت إضافة سجل جنائي إلى ${currentCriminalId}: ${title}`
+                );
+
+
+                document.getElementById(
+                    'recordTitle'
+                ).value = '';
+
+
+                document.getElementById(
+                    'recordDetails'
+                ).value = '';
+
+
+                loadCriminalRecords(
+                    currentCriminalId
+                );
+
+            });
+
+        }
+
+
+        function editCriminalRecord(recordId, oldTitle, oldDetails) {
+
+            if (!currentCriminalId) return;
+
+            db.ref('citizens/' + currentCriminalId + '/records/' + recordId).once('value', snapshot => {
+
+                const record = snapshot.val() || {};
+
+                if (!canEditOwned(record, ['createdBy'])) {
+                    alert('❌ يمكنك تعديل السجلات التي أنشأتها فقط.');
+                    return;
+                }
+
+                const newTitle = prompt('تعديل عنوان السجل:', oldTitle);
+                const newDetails = prompt('تعديل تفاصيل السجل:', oldDetails);
+
+                if (!newTitle || !newDetails) return;
+
+                db.ref('citizens/' + currentCriminalId + '/records/' + recordId).update({
+                    title: newTitle,
+                    details: newDetails,
+                    updatedBy: currentAgent,
+                    updatedAt: new Date().toLocaleString('ar-EG'),
+                    updatedAtMs: Date.now()
+                }, error => {
+                    if (!error) loadCriminalRecords(currentCriminalId);
+                });
+
+            });
+        }
+
+
+        function deleteCriminalRecord(recordId) {
+
+            if (!currentCriminalId) return;
+
+            db.ref('citizens/' + currentCriminalId + '/records/' + recordId).once('value', snapshot => {
+
+                const record = snapshot.val() || {};
+
+                if (!canEditOwned(record, ['createdBy'])) {
+                    alert('❌ يمكنك حذف السجلات التي أنشأتها فقط.');
+                    return;
+                }
+
+                if (!confirm('هل أنت متأكد من حذف هذا السجل نهائياً؟')) return;
+
+                db.ref('citizens/' + currentCriminalId + '/records/' + recordId).remove(
+                    error => {
+                        if (!error) loadCriminalRecords(currentCriminalId);
+                    }
+                );
+
+            });
+        }
+
+
+        /* =========================================================
+           ESCAPE
+           ========================================================= */
+
+        function escapeHtml(value) {
+
+            return String(
+                value ?? ''
+            )
+                .replace(
+                    /&/g,
+                    '&amp;'
+                )
+                .replace(
+                    /</g,
+                    '&lt;'
+                )
+                .replace(
+                    />/g,
+                    '&gt;'
+                )
+                .replace(
+                    /"/g,
+                    '&quot;'
+                )
+                .replace(
+                    /'/g,
+                    '&#039;'
+                );
+
+        }
+
+
+        function escapeHtmlAttr(value) {
+
+            return escapeHtml(value)
+                .replace(
+                    /`/g,
+                    '&#096;'
+                );
+
+        }
+
+
+        function escapeJs(value) {
+
+            return String(
+                value ?? ''
+            )
+                .replace(
+                    /\\/g,
+                    '\\\\'
+                )
+                .replace(
+                    /`/g,
+                    '\\`'
+                )
+                .replace(
+                    /\$\{/g,
+                    '\\${'
+                );
+
+        }
+
+
+        /* =========================================================
+           REPORTS
+           ========================================================= */
+
+        function submitReport() {
+
+            if (!hasPermission('createReports'))
+                return alert(
+                    '❌ لا تملك صلاحية إنشاء التقارير.'
+                );
+
+
+            const title =
+                document.getElementById(
+                    'reportTitle'
+                ).value.trim();
+
+
+            const content =
+                document.getElementById(
+                    'reportContent'
+                ).value.trim();
+
+
+            const citizenId =
+                document.getElementById(
+                    'reportCitizenId'
+                ).value.trim();
+
+
+            const videoUrl =
+                document.getElementById(
+                    'reportVideoUrl'
+                ).value.trim();
+
+
+            if (!title || !content) {
+
+                alert(
+                    'يرجى كتابة عنوان التقرير والتفاصيل!'
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * الفيديو اختياري.
+             * يتم حفظ الرابط فقط، بدون رفع الفيديو إلى Firebase Storage.
+             */
+            if (videoUrl) {
+
+                try {
+
+                    const parsedUrl =
+                        new URL(videoUrl);
+
+                    if (
+                        parsedUrl.protocol !== 'http:' &&
+                        parsedUrl.protocol !== 'https:'
+                    ) {
+                        throw new Error('Invalid URL');
+                    }
+
+                } catch (e) {
+
+                    alert(
+                        '❌ رابط الفيديو غير صحيح. يجب أن يبدأ بـ https:// أو http://'
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            const fileInput =
+                document.getElementById(
+                    'reportImage'
+                );
+
+
+            const file =
+                fileInput.files[0];
+
+
+            const timestamp =
+                new Date().toLocaleString(
+                    'ar-EG'
+                );
+
+
+            if (file) {
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function(e) {
+
+                        saveReportToDatabase(
+                            title,
+                            content,
+                            e.target.result,
+                            timestamp,
+                            citizenId,
+                            videoUrl || null
+                        );
+
+                    };
+
+
+                reader.readAsDataURL(file);
+
+            } else {
+
+                saveReportToDatabase(
+                    title,
+                    content,
+                    null,
+                    timestamp,
+                    citizenId,
+                    videoUrl || null
+                );
+
+            }
+
+        }
+
+
+        function saveReportToDatabase(
+            title,
+            content,
+            imgData,
+            timestamp,
+            citizenId = '',
+            videoUrl = null,
+            existingReportKey = null
+        ) {
+
+            const reportRef = existingReportKey
+                ? db.ref('reports/' + existingReportKey)
+                : db.ref('reports').push();
+
+            const payload = {
+                id: reportRef.key,
+                title,
+                content,
+                image: imgData,
+                video: videoUrl || null,
+                date: timestamp,
+                citizenId: citizenId || null
+            };
+
+            if (existingReportKey) {
+                payload.updatedBy = currentAgent;
+                payload.updatedAt = timestamp;
+            } else {
+                payload.agent = currentAgent;
+                payload.createdBy = currentAgent;
+                payload.createdAt = timestamp;
+            }
+
+            reportRef.update(payload, error => {
+
+                const submitButton = document.querySelector('button[onclick="submitReport()"]');
+
+                if (!error) {
+
+                    if (!existingReportKey) {
+                        alert('تم إرسال التقرير بنجاح!');
+                        document.getElementById('reportTitle').value = '';
+                        document.getElementById('reportContent').value = '';
+                        document.getElementById('reportImage').value = '';
+                        document.getElementById('reportVideoUrl').value = '';
+                        document.getElementById('reportCitizenId').value = '';
+                    }
+
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.innerText = 'إرسال التقرير للقيادة';
+                    }
+
+                    addLog((existingReportKey ? 'تم تعديل التقرير: ' : 'تم رفع تقرير جديد: ') + title);
+
+                } else {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.innerText = 'إرسال التقرير للقيادة';
+                    }
+                    alert('❌ تعذر حفظ التقرير في قاعدة البيانات.');
+                }
+
+            });
+        }
+
+
+        function listenToReports() {
+
+            db.ref('reports').on(
+                'value',
+                snapshot => {
+
+                    const data =
+                        snapshot.val() || {};
+
+
+                    allReportsCache = [];
+
+
+                    for (let id in data) {
+
+                        allReportsCache.push(
+                            data[id]
+                        );
+
+                    }
+
+
+                    renderReports(
+                        allReportsCache
+                    );
+
+                }
+            );
+
+        }
+
+
+        function renderReports(
+            reports
+        ) {
+
+            const container =
+                document.getElementById(
+                    'reportsList'
+                );
+
+
+            container.innerHTML = '';
+
+
+            if (reports.length === 0) {
+
+                container.innerHTML =
+                    '<p style="color:#8a9ba8;text-align:center;">لا توجد تقارير مسجلة حالياً.</p>';
+
+                return;
+
+            }
+
+
+            [...reports].reverse().forEach(
+                rep => {
+
+                    const div =
+                        document.createElement(
+                            'div'
+                        );
+
+
+                    div.className =
+                        'report-card';
+
+
+                    let adminReportBtns = '';
+
+
+                    if (canEditOwned(rep, ['createdBy','agent'])) {
+
+                        adminReportBtns = `
+
+                            <div class="action-btns"
+                                 style="margin-top:10px;">
+
+                                <button class="btn-edit"
+                                        onclick="editReport('${escapeHtmlAttr(rep.id)}','${escapeHtmlAttr(rep.title)}',\`${escapeJs(rep.content)}\`)">
+                                    ✏️ تعديل التقرير
+                                </button>
+
+                                <button class="btn-delete"
+                                        onclick="deleteReport('${escapeHtmlAttr(rep.id)}')">
+                                    🗑️ حذف التقرير
+                                </button>
+
+                            </div>
+
+                        `;
+
+                    }
+
+
+                    div.innerHTML = `
+
+                        <div style="display:flex;justify-content:space-between;color:var(--accent-gold);font-size:13px;font-weight:bold;margin-bottom:5px;">
+
+                            <span>
+                                👤 العضو:
+                                ${escapeHtml(rep.agent)}
+                            </span>
+
+                            <span>
+                                📅
+                                ${escapeHtml(rep.date)}
+                            </span>
+
+                        </div>
+
+
+                        <div style="font-size:14px;font-weight:bold;color:var(--accent-blue);margin-bottom:5px;">
+
+                            📋 العنوان:
+                            ${escapeHtml(rep.title)}
+
+                        </div>
+
+
+                        <p style="font-size:12px;color:#ddd;white-space:pre-wrap;">
+
+                            ${escapeHtml(rep.content)}
+
+                        </p>
+
+
+                        ${
+                            rep.image
+                                ? `<img src="${escapeHtmlAttr(rep.image)}" class="report-img">`
+                                : ''
+                        }
+
+
+                        ${
+                            rep.video
+                                ? `
+                                    <div style="margin-top:12px;">
+                                        <div style="color:var(--accent-gold);font-size:12px;font-weight:bold;margin-bottom:6px;">
+                                            🎥 دليل فيديو
+                                        </div>
+
+                                        <video
+                                            controls
+                                            preload="metadata"
+                                            style="width:100%;max-height:420px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#000;"
+                                        >
+                                            <source src="${escapeHtmlAttr(rep.video)}">
+                                            متصفحك لا يدعم تشغيل الفيديو.
+                                        </video>
+
+                                        <a
+                                            href="${escapeHtmlAttr(rep.video)}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style="display:inline-block;margin-top:7px;color:var(--accent-blue);font-size:11px;"
+                                        >
+                                            🔗 فتح الفيديو
+                                        </a>
+                                    </div>
+                                `
+                                : ''
+                        }
+
+
+                        ${adminReportBtns}
+
+                    `;
+
+
+                    container.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+        }
+
+
+        function editReport(id, oldTitle, oldContent) {
+
+            db.ref('reports/' + id).once('value', snapshot => {
+
+                const rep = snapshot.val() || {};
+
+                if (!canEditOwned(rep, ['createdBy','agent'])) {
+                    alert('❌ يمكنك تعديل تقاريرك فقط.');
+                    return;
+                }
+
+                const newTitle = prompt('تعديل عنوان التقرير:', oldTitle);
+                const newContent = prompt('تعديل تفاصيل التقرير:', oldContent);
+
+                if (newTitle && newContent) {
+                    db.ref('reports/' + id).update({
+                        title: newTitle,
+                        content: newContent,
+                        updatedBy: currentAgent,
+                        updatedAt: new Date().toLocaleString('ar-EG')
+                    });
+                    addLog(`تم تعديل التقرير: ${newTitle}`);
+                }
+
+            });
+        }
+
+
+        function deleteReport(id) {
+
+            db.ref('reports/' + id).once('value', snapshot => {
+
+                const rep = snapshot.val() || {};
+
+                if (!canEditOwned(rep, ['createdBy','agent'])) {
+                    alert('❌ يمكنك حذف تقاريرك فقط.');
+                    return;
+                }
+
+                if (confirm('هل أنت متأكد من حذف هذا التقرير نهائياً؟')) {
+                    db.ref('reports/' + id).remove();
+                    addLog('تم حذف تقرير من الأرشيف.');
+                }
+
+            });
+        }
+
+
+        function filterReports() {
+
+            const query =
+                document.getElementById(
+                    'searchReportInput'
+                ).value.toLowerCase();
+
+
+            const filtered =
+                allReportsCache.filter(
+                    rep =>
+                        String(rep.agent || '')
+                            .toLowerCase()
+                            .includes(query)
+                        ||
+                        String(rep.title || '')
+                            .toLowerCase()
+                            .includes(query)
+                );
+
+
+            renderReports(
+                filtered
+            );
+
+        }
+
+
+        /* =========================================================
+           ONLINE USERS
+           ========================================================= */
+
+        function listenToUsers() {
+
+            const usersList =
+                document.getElementById(
+                    'usersList'
+                );
+
+
+            if (!usersList)
+                return;
+
+
+            usersList.innerHTML =
+                '<li style="text-align:center;color:#8a9ba8;padding:20px;">جاري تحميل القائمة...</li>';
+
+
+            db.ref('users').on(
+                'value',
+                snapshot => {
+
+                    usersList.innerHTML = '';
+
+
+                    const data =
+                        snapshot.val() || {};
+
+
+                    const agents =
+                        Object.keys(data);
+
+
+                    if (agents.length === 0) {
+
+                        usersList.innerHTML =
+                            '<li style="text-align:center;color:#8a9ba8;padding:20px;">لا توجد حسابات مسجلة.</li>';
+
+                        return;
+
+                    }
+
+
+                    agents.sort(
+                        (a, b) => {
+
+                            const onlineA =
+                                data[a] &&
+                                data[a].online === true;
+
+
+                            const onlineB =
+                                data[b] &&
+                                data[b].online === true;
+
+
+                            if (
+                                onlineA !==
+                                onlineB
+                            ) {
+
+                                return onlineA
+                                    ? -1
+                                    : 1;
+
+                            }
+
+
+                            return a.localeCompare(
+                                b
+                            );
+
+                        }
+                    );
+
+
+                    agents.forEach(
+                        agent => {
+
+                            const user =
+                                data[agent] || {};
+
+
+                            const isOnline =
+                                user.online === true;
+
+
+                            const roleKey =
+                                user.role === 'cia_commander' ? 'cia_commander' : 'cia_member';
+
+
+                            const role =
+                                ROLES[roleKey] ||
+                                ROLES.cia_member;
+
+
+                            const li =
+                                document.createElement(
+                                    'li'
+                                );
+
+
+                            li.className =
+                                `user-item ${isOnline ? 'online' : ''}`;
+
+
+                            const safeAgent =
+                                escapeHtml(
+                                    agent
+                                );
+
+
+                            const safeRole =
+                                escapeHtml(
+                                    role.label
+                                );
+
+
+                            const ranks =
+                                Array.isArray(
+                                    user.displayRanks
+                                )
+                                    ? user.displayRanks
+                                    : [];
+
+
+                            const rankHtml =
+                                ranks.map(
+                                    r =>
+                                        `<span class="display-rank-badge">${escapeHtml(r)}</span>`
+                                ).join('');
+
+
+                            const reportsBadge =
+                                user.reportsOfficer === true
+                                    ? `<span class="reports-officer-badge">CIA Access</span>`
+                                    : '';
+
+
+                            li.innerHTML = `
+
+                                <div style="display:flex;align-items:center;gap:8px;">
+
+                                    <span class="status-dot ${isOnline ? 'online' : ''}">
+                                    </span>
+
+                                    <div>
+
+                                        <strong>
+                                            ${safeAgent}
+                                        </strong>
+
+                                        <div style="font-size:10px;color:#8a9ba8;">
+                                            ${safeRole}
+                                        </div>
+
+                                        <div class="display-ranks-box">
+                                            ${rankHtml}
+                                            ${reportsBadge}
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <span class="status-text">
+                                    ${
+                                        isOnline
+                                            ? '🟢 متصل الآن'
+                                            : '⚫ غير متصل'
+                                    }
+                                </span>
+
+                            `;
+
+
+                            usersList.appendChild(
+                                li
+                            );
+
+                        }
+                    );
+
+                },
+                error => {
+
+                    usersList.innerHTML =
+                        '<li style="text-align:center;color:var(--danger-color);padding:20px;">تعذر تحميل قائمة العناصر. تحقق من صلاحيات Firebase.</li>';
+
+                    console.error(
+                        'Users listener error:',
+                        error
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =========================================================
+           GANG INTELLIGENCE
+           ========================================================= */
+
+        function toggleGangForm() {
+
+            if (!canManageGangPlanning())
+                return alert(
+                    '❌ هذه الوظيفة متاحة لأعضاء CIA فقط.'
+                );
+
+
+            const form =
+                document.getElementById(
+                    'gangForm'
+                );
+
+
+            if (
+                form.style.display === 'none' ||
+                !form.style.display
+            ) {
+
+                form.style.display =
+                    'block';
+
+                resetGangForm();
+
+            } else {
+
+                form.style.display =
+                    'none';
+
+            }
+
+        }
+
+
+        function cancelGangForm() {
+
+            editingGangId = null;
+
+            document.getElementById(
+                'gangForm'
+            ).style.display =
+                'none';
+
+            resetGangForm();
+
+        }
+
+
+        function resetGangForm() {
+
+            editingGangId = null;
+
+
+            document.getElementById(
+                'gangName'
+            ).value = '';
+
+
+            document.getElementById(
+                'gangDanger'
+            ).value = 'high';
+
+
+            document.getElementById(
+                'gangImage'
+            ).value = '';
+
+
+            document.getElementById(
+                'gangArea'
+            ).value = '';
+
+
+            document.getElementById(
+                'gangNotes'
+            ).value = '';
+
+
+            document.getElementById(
+                'gangBossName'
+            ).value = '';
+
+
+            document.getElementById(
+                'gangBossId'
+            ).value = '';
+
+
+            document.getElementById(
+                'gangBossImage'
+            ).value = '';
+
+
+            document.getElementById(
+                'gangMembersFormContainer'
+            ).innerHTML = '';
+
+
+            document.getElementById(
+                'gangRelationsFormContainer'
+            ).innerHTML = '';
+
+        }
+
+
+        function addGangMemberForm(
+            member = {}
+        ) {
+
+            if (!canManageGangPlanning())
+                return;
+
+
+            const container =
+                document.getElementById(
+                    'gangMembersFormContainer'
+                );
+
+
+            const wrapper =
+                document.createElement(
+                    'div'
+                );
+
+
+            wrapper.className =
+                'gang-member-form';
+
+
+            const uid =
+                'member_' +
+                Date.now() +
+                '_' +
+                Math.random()
+                    .toString(36)
+                    .slice(2);
+
+
+            wrapper.dataset.uid =
+                uid;
+
+
+            wrapper.innerHTML = `
+
+                <div class="two-cols">
+
+                    <div class="input-group">
+
+                        <label>اسم الفرد</label>
+
+                        <input type="text"
+                               class="gang-member-name-input"
+                               value="${escapeHtmlAttr(member.name || '')}"
+                               placeholder="اسم الفرد">
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>Citizen ID</label>
+
+                        <input type="text"
+                               class="gang-member-id-input"
+                               value="${escapeHtmlAttr(member.citizenId || '')}"
+                               placeholder="Citizen ID">
+
+                    </div>
+
+                </div>
+
+
+                <div class="two-cols">
+
+                    <div class="input-group">
+
+                        <label>الرتبة داخل العصابة</label>
+
+                        <input type="text"
+                               class="gang-member-role-input"
+                               value="${escapeHtmlAttr(member.role || 'Member')}"
+                               placeholder="Member">
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>رابط الصورة</label>
+
+                        <input type="text"
+                               class="gang-member-image-input"
+                               value="${escapeHtmlAttr(member.image || '')}"
+                               placeholder="https://example.com/photo.jpg">
+
+                    </div>
+
+                </div>
+
+
+                <button class="btn-delete"
+                        style="width:100%;"
+                        onclick="this.parentElement.remove()">
+                    🗑️ إزالة الفرد
+                </button>
+
+            `;
+
+
+            container.appendChild(
+                wrapper
+            );
+
+        }
+
+
+        function addGangRelationForm(
+            relation = {}
+        ) {
+
+            if (!canManageGangPlanning())
+                return;
+
+
+            const container =
+                document.getElementById(
+                    'gangRelationsFormContainer'
+                );
+
+
+            const wrapper =
+                document.createElement(
+                    'div'
+                );
+
+
+            wrapper.className =
+                'gang-member-form';
+
+
+            wrapper.innerHTML = `
+
+                <div class="two-cols">
+
+                    <div class="input-group">
+
+                        <label>من</label>
+
+                        <input type="text"
+                               class="gang-relation-from"
+                               value="${escapeHtmlAttr(relation.from || '')}"
+                               placeholder="اسم الشخص">
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>إلى</label>
+
+                        <input type="text"
+                               class="gang-relation-to"
+                               value="${escapeHtmlAttr(relation.to || '')}"
+                               placeholder="اسم الشخص">
+
+                    </div>
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>نوع العلاقة</label>
+
+                    <input type="text"
+                           class="gang-relation-type"
+                           value="${escapeHtmlAttr(relation.type || 'Relationship')}"
+                           placeholder="مثال: Boss / Right Hand / Associate">
+
+                </div>
+
+
+                <button class="btn-delete"
+                        style="width:100%;"
+                        onclick="this.parentElement.remove()">
+                    🗑️ إزالة العلاقة
+                </button>
+
+            `;
+
+
+            container.appendChild(
+                wrapper
+            );
+
+        }
+
+
+        function collectGangMembers() {
+
+            const members = [];
+
+
+            document
+                .querySelectorAll(
+                    '#gangMembersFormContainer .gang-member-form'
+                )
+                .forEach(
+                    box => {
+
+                        const name =
+                            box.querySelector(
+                                '.gang-member-name-input'
+                            ).value.trim();
+
+
+                        const citizenId =
+                            box.querySelector(
+                                '.gang-member-id-input'
+                            ).value.trim();
+
+
+                        const role =
+                            box.querySelector(
+                                '.gang-member-role-input'
+                            ).value.trim();
+
+
+                        const image =
+                            box.querySelector(
+                                '.gang-member-image-input'
+                            ).value.trim();
+
+
+                        if (name) {
+
+                            members.push({
+
+                                name,
+
+                                citizenId,
+
+                                role:
+                                    role ||
+                                    'Member',
+
+                                image:
+                                    image ||
+                                    'https://via.placeholder.com/150/080d1a/8a9ba8?text=NO+IMAGE'
+
+                            });
+
+                        }
+
+                    }
+                );
+
+
+            return members;
+
+        }
+
+
+        function collectGangRelations() {
+
+            const relations = [];
+
+
+            document
+                .querySelectorAll(
+                    '#gangRelationsFormContainer .gang-member-form'
+                )
+                .forEach(
+                    box => {
+
+                        const from =
+                            box.querySelector(
+                                '.gang-relation-from'
+                            ).value.trim();
+
+
+                        const to =
+                            box.querySelector(
+                                '.gang-relation-to'
+                            ).value.trim();
+
+
+                        const type =
+                            box.querySelector(
+                                '.gang-relation-type'
+                            ).value.trim();
+
+
+                        if (from && to) {
+
+                            relations.push({
+
+                                from,
+
+                                to,
+
+                                type:
+                                    type ||
+                                    'Relationship'
+
+                            });
+
+                        }
+
+                    }
+                );
+
+
+            return relations;
+
+        }
+
+
+        function saveGang() {
+
+            if (!hasPermission('createGang'))
+                return alert('❌ لا تملك صلاحية إنشاء مخططات.');
+
+
+            const name =
+                document.getElementById(
+                    'gangName'
+                ).value.trim();
+
+
+            const danger =
+                document.getElementById(
+                    'gangDanger'
+                ).value;
+
+
+            const image =
+                document.getElementById(
+                    'gangImage'
+                ).value.trim()
+                ||
+                'https://via.placeholder.com/300/080d1a/8a9ba8?text=GANG';
+
+
+            const area =
+                document.getElementById(
+                    'gangArea'
+                ).value.trim();
+
+
+            const notes =
+                document.getElementById(
+                    'gangNotes'
+                ).value.trim();
+
+
+            const bossName =
+                document.getElementById(
+                    'gangBossName'
+                ).value.trim();
+
+
+            const bossId =
+                document.getElementById(
+                    'gangBossId'
+                ).value.trim();
+
+
+            const bossImage =
+                document.getElementById(
+                    'gangBossImage'
+                ).value.trim()
+                ||
+                'https://via.placeholder.com/150/080d1a/8a9ba8?text=BOSS';
+
+
+            if (!name || !bossName) {
+
+                alert(
+                    'يرجى إدخال اسم العصابة واسم الـ Boss.'
+                );
+
+                return;
+
+            }
+
+
+            const members =
+                collectGangMembers();
+
+
+            const relations =
+                collectGangRelations();
+
+
+            /*
+             * Boss يدخل أيضاً ضمن الأعضاء
+             * لكي يظهر في المخطط.
+             */
+            const bossExists =
+                members.some(
+                    m =>
+                        m.name.toLowerCase() ===
+                        bossName.toLowerCase()
+                );
+
+
+            if (!bossExists) {
+
+                members.unshift({
+
+                    name:
+                        bossName,
+
+                    citizenId:
+                        bossId,
+
+                    role:
+                        'Boss',
+
+                    image:
+                        bossImage,
+
+                    isLeader:
+                        true
+
+                });
+
+            } else {
+
+                members.forEach(
+                    m => {
+
+                        if (
+                            m.name.toLowerCase() ===
+                            bossName.toLowerCase()
+                        ) {
+
+                            m.isLeader = true;
+
+                            if (!m.role)
+                                m.role = 'Boss';
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+            const gangData = {
+
+                name,
+
+                danger,
+
+                image,
+
+                area,
+
+                notes,
+
+                boss: {
+
+                    name:
+                        bossName,
+
+                    citizenId:
+                        bossId,
+
+                    image:
+                        bossImage
+
+                },
+
+                members,
+
+                relations,
+
+                createdBy:
+                    currentAgent,
+
+                updatedBy:
+                    currentAgent,
+
+                createdAt:
+                    Date.now(),
+
+                updatedAt:
+                    Date.now()
+
+            };
+
+
+            let ref;
+
+
+            if (editingGangId) {
+
+                const existingGang = allGangsCache.find(g => g.id === editingGangId);
+
+                if (!existingGang || !canEditOwned(existingGang, ['createdBy']))
+                    return alert('❌ يمكنك تعديل المخططات التي أنشأتها فقط.');
+
+                ref =
+                    db.ref(
+                        'gangs/' +
+                        editingGangId
+                    );
+
+
+                ref.update(
+                    gangData,
+                    error => {
+
+                        if (error) {
+
+                            alert(
+                                'تعذر تحديث مخطط العصابة.'
+                            );
+
+                            return;
+
+                        }
+
+
+                        addLog(
+                            `تم تحديث مخطط العصابة: ${name}`
+                        );
+
+
+                        alert(
+                            'تم تحديث المخطط بنجاح.'
+                        );
+
+
+                        cancelGangForm();
+
+                    }
+                );
+
+            } else {
+
+                ref =
+                    db.ref(
+                        'gangs'
+                    ).push();
+
+
+                gangData.id =
+                    ref.key;
+
+
+                ref.set(
+                    gangData,
+                    error => {
+
+                        if (error) {
+
+                            alert(
+                                'تعذر حفظ مخطط العصابة.'
+                            );
+
+                            return;
+
+                        }
+
+
+                        addLog(
+                            `تم إنشاء مخطط عصابة جديد: ${name}`
+                        );
+
+
+                        alert(
+                            'تم إنشاء المخطط بنجاح.'
+                        );
+
+
+                        cancelGangForm();
+
+                    }
+                );
+
+            }
+
+        }
+
+
+        function listenToGangs() {
+
+            db.ref('gangs').on(
+                'value',
+                snapshot => {
+
+                    const data =
+                        snapshot.val() || {};
+
+
+                    allGangsCache = [];
+
+
+                    Object.keys(data).forEach(
+                        id => {
+
+                            allGangsCache.push({
+
+                                ...data[id],
+
+                                id:
+                                    data[id].id ||
+                                    id
+
+                            });
+
+                        }
+                    );
+
+
+                    allGangsCache.sort(
+                        (a, b) =>
+                            (
+                                b.updatedAt ||
+                                b.createdAt ||
+                                0
+                            )
+                            -
+                            (
+                                a.updatedAt ||
+                                a.createdAt ||
+                                0
+                            )
+                    );
+
+
+                    renderGangs(
+                        allGangsCache
+                    );
+
+                }
+            );
+
+        }
+
+
+        function renderGangs(
+            gangs
+        ) {
+
+            const container =
+                document.getElementById(
+                    'gangList'
+                );
+
+
+            container.innerHTML = '';
+
+
+            if (!gangs.length) {
+
+                container.innerHTML = `
+
+                    <div class="empty-gang">
+
+                        🕵️
+
+                        <br><br>
+
+                        لا توجد مخططات عصابات حالياً.
+
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+
+            gangs.forEach(
+                gang => {
+
+                    const card =
+                        document.createElement(
+                            'div'
+                        );
+
+
+                    card.className =
+                        'gang-card';
+
+
+                    const dangerLabel =
+                        gang.danger === 'high'
+                            ? 'عالي الخطورة'
+                            : gang.danger === 'medium'
+                                ? 'متوسط الخطورة'
+                                : 'منخفض الخطورة';
+
+
+                    const members =
+                        Array.isArray(
+                            gang.members
+                        )
+                            ? gang.members
+                            : [];
+
+
+                    const relations =
+                        Array.isArray(
+                            gang.relations
+                        )
+                            ? gang.relations
+                            : [];
+
+
+                    const membersHtml =
+                        members.map(
+                            member => {
+
+                                const leader =
+                                    member.isLeader ||
+                                    (
+                                        gang.boss &&
+                                        member.name ===
+                                        gang.boss.name
+                                    );
+
+
+                                return `
+
+                                    <div class="gang-member ${leader ? 'leader' : ''}">
+
+                                        <img src="${escapeHtmlAttr(
+                                            member.image ||
+                                            'https://via.placeholder.com/150/080d1a/8a9ba8?text=NO+IMAGE'
+                                        )}"
+                                             alt="Member">
+
+
+                                        <div class="gang-member-name">
+
+                                            ${
+                                                leader
+                                                    ? '👑 '
+                                                    : ''
+                                            }
+
+                                            ${escapeHtml(
+                                                member.name ||
+                                                '-'
+                                            )}
+
+                                        </div>
+
+
+                                        <div class="gang-member-role">
+
+                                            ${escapeHtml(
+                                                member.role ||
+                                                'Member'
+                                            )}
+
+                                        </div>
+
+
+                                        ${
+                                            member.citizenId
+                                                ? `
+                                                    <div class="gang-member-id">
+
+                                                        Citizen ID:
+                                                        ${escapeHtml(
+                                                            member.citizenId
+                                                        )}
+
+                                                    </div>
+                                                  `
+                                                : ''
+                                        }
+
+                                    </div>
+
+                                `;
+
+                            }
+                        ).join('');
+
+
+                    const relationsHtml =
+                        relations.length
+                            ? `
+
+                                <div class="gang-relations">
+
+                                    <h4 style="color:var(--accent-blue);margin-bottom:8px;">
+                                        🔗 العلاقات
+                                    </h4>
+
+                                    ${relations.map(
+                                        r => `
+
+                                            <div class="relation-item">
+
+                                                <span>
+                                                    ${escapeHtml(r.from)}
+                                                </span>
+
+                                                <span class="relation-arrow">
+                                                    ── ${escapeHtml(r.type || 'Relationship')} ──▶
+                                                </span>
+
+                                                <span>
+                                                    ${escapeHtml(r.to)}
+                                                </span>
+
+                                            </div>
+
+                                        `
+                                    ).join('')}
+
+                                </div>
+
+                              `
+                            : '';
+
+
+                    let controls = '';
+
+
+                    if (canEditOwned(gang, ['createdBy'])) {
+
+                        controls = `
+
+                            <div class="action-btns"
+                                 style="margin-top:12px;">
+
+                                <button class="btn-edit"
+                                        onclick="editGang('${escapeHtmlAttr(gang.id)}')">
+                                    ✏️ تعديل المخطط
+                                </button>
+
+                                <button class="btn-delete"
+                                        onclick="deleteGang('${escapeHtmlAttr(gang.id)}','${escapeHtmlAttr(gang.name)}')">
+                                    🗑️ حذف المخطط
+                                </button>
+
+                            </div>
+
+                        `;
+
+                    }
+
+
+                    card.innerHTML = `
+
+                        <div class="gang-card-header">
+
+                            <img class="gang-logo"
+                                 src="${escapeHtmlAttr(
+                                     gang.image ||
+                                     'https://via.placeholder.com/300/080d1a/8a9ba8?text=GANG'
+                                 )}"
+                                 alt="Gang Logo">
+
+
+                            <div style="flex:1;">
+
+                                <div class="gang-name">
+                                    ${escapeHtml(gang.name)}
+                                </div>
+
+                                <span class="gang-danger ${escapeHtmlAttr(gang.danger || 'medium')}">
+                                    ${dangerLabel}
+                                </span>
+
+
+                                ${
+                                    gang.area
+                                        ? `
+                                            <div style="font-size:11px;color:#8a9ba8;margin-top:6px;">
+                                                📍 النشاط:
+                                                ${escapeHtml(gang.area)}
+                                            </div>
+                                          `
+                                        : ''
+                                }
+
+
+                                ${
+                                    gang.boss
+                                        ? `
+                                            <div style="font-size:11px;color:#8a9ba8;margin-top:4px;">
+                                                👑 Boss:
+                                                <strong style="color:#fff;">
+                                                    ${escapeHtml(gang.boss.name)}
+                                                </strong>
+                                            </div>
+                                          `
+                                        : ''
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        ${
+                            gang.notes
+                                ? `
+                                    <div style="background:#0d1526;border:1px solid #1e2c4a;border-radius:5px;padding:10px;font-size:11px;color:#ddd;margin-bottom:10px;white-space:pre-wrap;">
+                                        <strong style="color:var(--accent-gold);">
+                                            📝 ملاحظات التحقيق
+                                        </strong>
+
+                                        <br>
+
+                                        ${escapeHtml(gang.notes)}
+                                    </div>
+                                  `
+                                : ''
+                        }
+
+
+                        <div>
+
+                            <h4 style="color:var(--accent-blue);margin-bottom:8px;">
+                                👥 هيكل العصابة
+                            </h4>
+
+                            <div class="gang-members-grid">
+
+                                ${membersHtml}
+
+                            </div>
+
+                        </div>
+
+
+                        ${relationsHtml}
+
+
+                        <div style="font-size:10px;color:#65758b;margin-top:10px;">
+
+                            👮 أنشأ بواسطة:
+                            ${escapeHtml(gang.createdBy || '-')}
+
+                            ·
+
+                            آخر تحديث:
+                            ${
+                                gang.updatedAt
+                                    ? new Date(
+                                        gang.updatedAt
+                                      ).toLocaleString(
+                                        'ar-EG'
+                                      )
+                                    : '-'
+                            }
+
+                        </div>
+
+
+                        ${controls}
+
+                    `;
+
+
+                    container.appendChild(
+                        card
+                    );
+
+                }
+            );
+
+        }
+
+
+        function filterGangs() {
+
+            const query =
+                document.getElementById(
+                    'gangSearchInput'
+                ).value
+                .trim()
+                .toLowerCase();
+
+
+            const filtered =
+                allGangsCache.filter(
+                    gang =>
+
+                        String(
+                            gang.name ||
+                            ''
+                        )
+                            .toLowerCase()
+                            .includes(query)
+
+                        ||
+
+                        String(
+                            gang.area ||
+                            ''
+                        )
+                            .toLowerCase()
+                            .includes(query)
+
+                        ||
+
+                        String(
+                            gang.boss &&
+                            gang.boss.name ||
+                            ''
+                        )
+                            .toLowerCase()
+                            .includes(query)
+
+                );
+
+
+            renderGangs(
+                filtered
+            );
+
+        }
+
+
+        function editGang(
+            id
+        ) {
+
+            const gang = allGangsCache.find(g => g.id === id);
+            if (!gang || !canEditOwned(gang, ['createdBy']))
+                return alert('❌ يمكنك تعديل المخططات التي أنشأتها فقط.');
+
+
+
+
+
+            editingGangId =
+                id;
+
+
+            document.getElementById(
+                'gangForm'
+            ).style.display =
+                'block';
+
+
+            document.getElementById(
+                'gangName'
+            ).value =
+                gang.name || '';
+
+
+            document.getElementById(
+                'gangDanger'
+            ).value =
+                gang.danger || 'medium';
+
+
+            document.getElementById(
+                'gangImage'
+            ).value =
+                gang.image || '';
+
+
+            document.getElementById(
+                'gangArea'
+            ).value =
+                gang.area || '';
+
+
+            document.getElementById(
+                'gangNotes'
+            ).value =
+                gang.notes || '';
+
+
+            document.getElementById(
+                'gangBossName'
+            ).value =
+                gang.boss &&
+                gang.boss.name ||
+                '';
+
+
+            document.getElementById(
+                'gangBossId'
+            ).value =
+                gang.boss &&
+                gang.boss.citizenId ||
+                '';
+
+
+            document.getElementById(
+                'gangBossImage'
+            ).value =
+                gang.boss &&
+                gang.boss.image ||
+                '';
+
+
+            document.getElementById(
+                'gangMembersFormContainer'
+            ).innerHTML =
+                '';
+
+
+            const members =
+                Array.isArray(
+                    gang.members
+                )
+                    ? gang.members
+                    : [];
+
+
+            members
+                .filter(
+                    m =>
+                        !(
+                            m.isLeader &&
+                            gang.boss &&
+                            m.name ===
+                            gang.boss.name
+                        )
+                )
+                .forEach(
+                    member => {
+
+                        addGangMemberForm(
+                            member
+                        );
+
+                    }
+                );
+
+
+            document.getElementById(
+                'gangRelationsFormContainer'
+            ).innerHTML =
+                '';
+
+
+            const relations =
+                Array.isArray(
+                    gang.relations
+                )
+                    ? gang.relations
+                    : [];
+
+
+            relations.forEach(
+                relation => {
+
+                    addGangRelationForm(
+                        relation
+                    );
+
+                }
+            );
+
+
+            goToSection(
+                'gangSection'
+            );
+
+        }
+
+
+        function deleteGang(id, name) {
+
+            const gang = allGangsCache.find(g => g.id === id);
+
+            if (!gang || !canEditOwned(gang, ['createdBy']))
+                return alert('❌ يمكنك حذف المخططات التي أنشأتها فقط.');
+
+            if (!confirm(`هل أنت متأكد من حذف مخطط العصابة (${name})؟`)) return;
+
+            db.ref('gangs/' + id).remove(error => {
+                if (error) {
+                    alert('تعذر حذف المخطط.');
+                    return;
+                }
+                addLog(`تم حذف مخطط العصابة: ${name}`);
+            });
+        }
+
+
+        /* =========================================================
+           PERMISSION UI
+           ========================================================= */
+
+        function updatePermissionUI() {
+
+            const reportSection = document.getElementById('adminReportsSection');
+            const usersSection = document.getElementById('adminUsersSection');
+            const criminalCreateButton = document.getElementById('newCriminalBtn');
+            const wantedAddButton = document.querySelector('button[onclick="toggleWantedForm()"]');
+            const wantedForm = document.getElementById('addWantedForm');
+
+            if (reportSection) reportSection.style.display = 'block';
+            if (usersSection) usersSection.style.display = isCommander() ? 'block' : 'none';
+
+            const adminUsersNavButton = document.getElementById('adminUsersNavButton');
+            if (adminUsersNavButton) adminUsersNavButton.style.display = isCommander() ? 'block' : 'none';
+
+            if (criminalCreateButton)
+                criminalCreateButton.style.display = hasPermission('createRecords') ? 'block' : 'none';
+
+            if (wantedAddButton)
+                wantedAddButton.style.display = hasPermission('createWanted') ? 'inline-block' : 'none';
+
+            if (wantedForm && !hasPermission('createWanted'))
+                wantedForm.style.display = 'none';
+
+            const reportSubmit = document.querySelector('button[onclick="submitReport()"]');
+            if (reportSubmit) reportSubmit.style.display = hasPermission('createReports') ? 'block' : 'none';
+
+            ['reportTitle','reportContent','reportImage','reportVideoUrl','reportCitizenId'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !hasPermission('createReports');
+            });
+
+            const gangButton = document.getElementById('addGangButton');
+            if (gangButton) gangButton.style.display = hasPermission('createGang') ? 'block' : 'none';
+        }
+
+
+        /* =========================================================
+           ENCRYPTION
+           ========================================================= */
+
+        function encryptMessage() {
+            const input = document.getElementById('plainText').value;
+            if (!input) return;
+
+            const encoded = btoa(unescape(encodeURIComponent(input)));
+
+            document.getElementById('resultOutput').value = `CIA-SEC-${encoded}`;
+            addLog('تم تشفير رسالة.');
+        }
+
+        function decryptMessage() {
+            let input = document.getElementById('cipherInput').value.trim();
+            if (!input) return;
+
+            if (input.startsWith('CIA-SEC-'))
+                input = input.replace('CIA-SEC-', '');
+
+            try {
+                const decoded = decodeURIComponent(escape(atob(input)));
+                document.getElementById('resultOutput').value = decoded;
+                addLog('تم فك تشفير الرسالة.');
+            } catch (e) {
+                document.getElementById('resultOutput').value = '❌ رمز غير صالح!';
+            }
+        }
+
+
+        /* =========================================================
+           LOG
+           ========================================================= */
+
+        function addLog(message) {
+            const logBox = document.getElementById('systemLog');
+            if (!logBox) return;
+
+            const timestamp = new Date().toLocaleTimeString('ar-EG');
+            logBox.innerHTML += `[${timestamp}] ${escapeHtml(message)}<br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const gangForm = document.getElementById('gangForm');
+            if (gangForm) gangForm.style.display = 'none';
+
+            const boot = document.getElementById('ciaBootScreen');
+            if (boot) {
+                setTimeout(() => {
+                    const btn = document.querySelector('.cia-enter-btn');
+                    if (btn) btn.focus();
+                }, 700);
+            }
+        });
+
+    </script>
+
+</body>
+</html>
+}
+
+
+        /* =========================================================
+           LOG
+           ========================================================= */
+
+        function ad
