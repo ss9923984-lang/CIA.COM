@@ -2701,10 +2701,15 @@
 
                 if (userData && userData.pin === pin) {
 
-                    setupUserSession(
-                        agent,
-                        userData.role === 'cia_commander' ? 'cia_commander' : 'cia_member'
-                    );
+                    const assignedRole =
+                        userData.role === 'admin' ? 'admin' :
+                        userData.role === 'cid_member' ? 'cid_member' :
+                        userData.role === 'view' ? 'view' :
+                        userData.role === 'cia_commander' || userData.role === 'cia_member'
+                            ? 'cid_member'
+                            : 'pending';
+
+                    setupUserSession(agent, assignedRole);
 
                 } else {
 
@@ -2785,14 +2790,8 @@
 
         function setupUserSession(agent, roleOverride = null) {
 
-            if (!isAdmin() && currentRole !== 'cid_member' && currentRole !== 'view') {
-                alert('⛔ الحساب غير مفعّل. يجب أن يمنحك ADMIN رتبة CID Member أو VIEW.');
-                if (typeof logout === 'function') logout();
-                return;
-            }
-
+            // Set the session identity/role FIRST, then validate access.
             currentAgent = agent;
-
 
             if (agent === ADMIN_USER) {
                 currentRole = 'admin';
@@ -2801,7 +2800,15 @@
                     ? 'cid_member'
                     : roleOverride === 'view'
                         ? 'view'
-                        : 'pending';
+                        : roleOverride === 'admin'
+                            ? 'admin'
+                            : 'pending';
+            }
+
+            if (!canUseSystem()) {
+                alert('⛔ الحساب غير مفعّل. يجب أن يمنحك ADMIN رتبة CID Member أو VIEW.');
+                if (typeof logout === 'function') logout();
+                return;
             }
 
 
