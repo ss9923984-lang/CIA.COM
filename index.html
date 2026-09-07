@@ -1472,6 +1472,12 @@
                     CIA Member
                 </span>
 
+                <span id="adminControlBadge"
+                      class="rank-badge rank-superadmin"
+                      style="display:none;">
+                    ADMIN
+                </span>
+
                 <div id="displayRanksHeader"
                      class="display-ranks-box"
                      style="justify-content:flex-end;">
@@ -2426,12 +2432,31 @@
 
         const ROLES = {
 
+            admin: {
+                label: "ADMIN",
+                className: "rank-superadmin",
+                permissions: [
+                    "manageUsers",
+                    "manageRoles",
+                    "managePins",
+                    "manageReports",
+                    "manageWanted",
+                    "manageRecords",
+                    "createReports",
+                    "createWanted",
+                    "createRecords",
+                    "viewRecords",
+                    "viewAll",
+                    "manageGangPlanning",
+                    "createGang"
+                ]
+            },
+
             cia_commander: {
                 label: "CIA Commander",
                 className: "rank-command",
                 permissions: [
                     "manageUsers",
-                    "manageRoles",
                     "managePins",
                     "manageReports",
                     "manageWanted",
@@ -2711,7 +2736,7 @@
 
                     setupUserSession(
                         agent,
-                        userData.role || 'officer'
+                        userData.role === 'cia_commander' ? 'cia_commander' : 'cia_member'
                     );
 
                 } else {
@@ -2744,8 +2769,16 @@
         /*
          * CIA Access
          */
+        function isAdmin() {
+            return currentAgent === ADMIN_USER || currentRole === 'admin';
+        }
+
         function isCommander() {
-            return currentAgent === ADMIN_USER || currentRole === 'cia_commander';
+            return isAdmin() || currentRole === 'cia_commander';
+        }
+
+        function canManageRoles() {
+            return isAdmin();
         }
 
         function isReportsOfficer() {
@@ -2771,15 +2804,11 @@
 
 
             if (agent === ADMIN_USER) {
-
-                currentRole = 'cia_commander';
-
+                currentRole = 'admin';
             } else {
-
                 currentRole = roleOverride === 'cia_commander'
                     ? 'cia_commander'
                     : 'cia_member';
-
             }
 
 
@@ -2809,6 +2838,11 @@
 
             rankEl.className =
                 'rank-badge ' + role.className;
+
+            const adminBadge = document.getElementById('adminControlBadge');
+            if (adminBadge) {
+                adminBadge.style.display = isAdmin() ? 'inline-block' : 'none';
+            }
 
 
             /*
@@ -2851,7 +2885,7 @@
 
                 db.ref('users/' + ADMIN_USER).update({
 
-                    role: 'cia_commander',
+                    role: 'admin',
 
                     online: true,
 
@@ -2899,7 +2933,7 @@
             listenToReports();
 
 
-            if (isCommander())
+            if (isAdmin())
                 listenToManageUsers();
 
 
@@ -3149,7 +3183,7 @@
 
                                 <button class="btn-edit"
                                         onclick="changeUserRole('${escapeHtmlAttr(agent)}')">
-                                    ⭐ تعيين CIA Commander / Member
+                                    ⭐ تعيين / إزالة الرتبة
                                 </button>
 
                                 <button class="btn-edit"
@@ -3187,16 +3221,22 @@
 
         function changeUserRole(agent) {
 
-            if (!isCommander())
-                return alert('❌ إدارة الرتب متاحة لـ CIA Commander فقط.');
+            if (!isAdmin())
+                return alert('❌ إدارة الرتب متاحة للـ ADMIN فقط.');
 
             const choice = prompt(
-                `اختيار رتبة ${agent}:\n\n1. CIA Commander\n2. CIA Member\n\nاكتب 1 أو 2:`
+                `إدارة رتبة ${agent}:
+
+1. CIA Commander
+2. CIA Member
+3. إزالة الرتبة (CIA Member)
+
+اكتب 1 أو 2 أو 3:`
             );
 
             const role = choice === '1'
                 ? 'cia_commander'
-                : choice === '2'
+                : (choice === '2' || choice === '3')
                     ? 'cia_member'
                     : null;
 
