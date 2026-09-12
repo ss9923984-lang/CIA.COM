@@ -1402,6 +1402,14 @@
         .sector-delete-row{border:0;background:transparent;color:#ff7777;cursor:pointer;font-size:14px}
         .sector-empty{padding:24px;text-align:center;color:#7f91aa;font-size:12px}
         .sector-admin-only{display:none}
+        .sector-sheet-admin-box{margin:14px 0;padding:15px;background:#0a101d;border:1px solid var(--accent-gold);border-radius:10px}
+        .sector-sheet-admin-title{font-weight:900;color:var(--accent-gold);margin-bottom:12px}
+        .sector-sheet-admin-box label{display:block;margin:10px 0 5px;color:#9fb0c7;font-size:11px}
+        .sector-sheet-admin-box input{width:100%;padding:10px;background:#050811;border:1px solid #263b61;color:#fff;border-radius:6px;outline:none}
+        .sector-sheet-admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+        .sector-sheet-admin-actions .main-btn,.sector-sheet-admin-actions .btn-delete{width:auto;flex:1 1 150px}
+        .sector-sheet-frame-wrap{width:100%;height:70vh;min-height:520px;background:#fff;border:1px solid #263b61;border-radius:0 0 10px 10px;overflow:hidden}
+        .sector-sheet-frame{display:block;width:100%;height:100%;border:0;background:#fff}
         .sector-table-meta{color:#7f91aa;font-size:10px;margin-top:3px}
         @media(max-width:700px){
             .sector-table-head{align-items:flex-start;flex-direction:column}
@@ -2406,42 +2414,22 @@
 
                 <!-- CIA SECTOR TABLES -->
 
-                <div class="panel admin-panel cia-sector-tables-panel"
+                <div class="panel cia-sector-tables-panel"
                      id="sectorTablesSection"
                      style="display:none;">
 
                     <div class="section-title-bar">
                         <div>
-                            <h3 style="color:var(--accent-gold);margin-bottom:4px;">
-                                📊 جداول القطاعات
-                            </h3>
-                            <small style="color:#8a9ba8;">
-                                نظام جداول مباشر شبيه بـ Sheets — كل تعديل يظهر لجميع الأعضاء فوراً.
-                            </small>
-                        </div>
-                    </div>
-
-                    <div id="sectorAdminControls" class="sector-admin-only">
-                        <div class="sector-toolbar">
-                            <button class="main-btn" type="button" onclick="createSectorTable()">
-                                ➕ إنشاء جدول جديد
-                            </button>
-                            <button class="main-btn" type="button" onclick="refreshSectorTables()">
-                                🔄 تحديث
-                            </button>
-                        </div>
-                        <div class="sector-admin-note">
-                            🔐 <b>ADMIN فقط:</b> يمكنك إنشاء الجداول، تغيير أسمائها، إضافة/حذف الأعمدة والصفوف، وتعديل الخانات.
-                            الأعضاء الآخرون يستطيعون مشاهدة الجداول فقط.
+                            <h3 style="color:var(--accent-gold);margin-bottom:4px;">📊 جداول القطاعات</h3>
+                            <small style="color:#8a9ba8;">الجدول الرئيسي للقطاعات — ADMIN يضع رابط Google Sheets وجميع الأعضاء يشاهدونه هنا.</small>
                         </div>
                     </div>
 
                     <div id="sectorTablesList">
-                        <div class="sector-empty">جاري تحميل جداول القطاعات...</div>
+                        <div class="sector-empty">جاري تحميل جدول القطاعات...</div>
                     </div>
 
                 </div>
-
 
                 <div class="panel">
 
@@ -7173,8 +7161,7 @@
         }
 
         function refreshSectorTables() {
-            if (!canManageSectorTables() && !canUseSystem()) return;
-
+            if (!canUseSystem()) return;
             if (sectorTablesListenerRef) {
                 sectorTablesListenerRef.off();
                 sectorTablesListenerRef = null;
@@ -7185,208 +7172,74 @@
         function listenToSectorTables(force = false) {
             if (!canUseSystem()) return;
             if (sectorTablesListenerRef && !force) return;
-
             if (sectorTablesListenerRef) sectorTablesListenerRef.off();
 
-            sectorTablesListenerRef = db.ref('sectorTables');
+            sectorTablesListenerRef = db.ref('sectorTables/main');
             sectorTablesListenerRef.on('value', snapshot => {
-                renderSectorTables(snapshot.val() || {});
-            });
-        }
-
-        function createSectorTable() {
-            if (!canManageSectorTables()) {
-                alert('❌ إنشاء وتعديل جداول القطاعات متاح للـ ADMIN فقط.');
-                return;
-            }
-
-            const title = prompt('اسم الجدول الجديد:', 'قطاع جديد');
-            if (title === null) return;
-
-            const cleanTitle = title.trim().slice(0, 80);
-            if (!cleanTitle) {
-                alert('❌ يجب كتابة اسم للجدول.');
-                return;
-            }
-
-            db.ref('sectorTables').push().set({
-                title: cleanTitle,
-                columns: ['الاسم', 'الرتبة', 'الحالة'],
-                rows: [['', '', '']],
-                createdBy: currentAgent,
-                createdAt: firebase.database.ServerValue.TIMESTAMP,
-                updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                updatedBy: currentAgent
+                renderSectorTables(snapshot.val() || null);
             }, error => {
-                if (error) alert('❌ تعذر إنشاء الجدول.');
+                const box = document.getElementById('sectorTablesList');
+                if (box) box.innerHTML = '<div class="sector-empty">❌ تعذر تحميل جدول القطاعات: ' + escapeHtml(error.message || 'Firebase error') + '</div>';
             });
         }
 
-        function renameSectorTable(tableId) {
-            if (!canManageSectorTables()) return;
+        function normalizeSectorSheetUrl(url) {
+            url = String(url || '').trim();
+            if (!url) return '';
 
-            db.ref('sectorTables/' + tableId + '/title').once('value', snap => {
-                const title = prompt('اسم الجدول:', snap.val() || '');
-                if (title === null) return;
+            if (!/^https?:\/\/docs\.google\.com\/spreadsheets\/d\//i.test(url)) return '';
 
-                const cleanTitle = title.trim().slice(0, 80);
-                if (!cleanTitle) return alert('❌ اسم الجدول لا يمكن أن يكون فارغاً.');
+            // Google Sheets Publish to web URL: keep it as-is.
+            if (/\/pubhtml(?:\?|$)/i.test(url)) return url;
 
-                db.ref('sectorTables/' + tableId).update({
-                    title: cleanTitle,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                    updatedBy: currentAgent
-                });
-            });
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/i);
+            if (!match) return '';
+
+            const id = match[1];
+            const gidMatch = url.match(/[?#&]gid=([0-9]+)/i);
+            const gid = gidMatch ? gidMatch[1] : '0';
+
+            // Public/viewable sheets can be rendered through Google Visualization.
+            return 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:html&gid=' + gid;
         }
 
-        function deleteSectorTable(tableId) {
-            if (!canManageSectorTables()) return;
-            if (!confirm('⚠️ هل أنت متأكد من حذف هذا الجدول بالكامل؟')) return;
+        function saveSectorSheet() {
+            if (!canManageSectorTables()) {
+                alert('❌ إعداد جدول القطاعات متاح للـ ADMIN فقط.');
+                return;
+            }
 
-            db.ref('sectorTables/' + tableId).remove(error => {
-                if (error) alert('❌ تعذر حذف الجدول.');
-            });
-        }
+            const urlInput = document.getElementById('sectorSheetUrlInput');
+            const titleInput = document.getElementById('sectorSheetTitleInput');
+            const rawUrl = urlInput ? urlInput.value.trim() : '';
+            const title = titleInput ? titleInput.value.trim().slice(0, 100) : '';
+            const embedUrl = normalizeSectorSheetUrl(rawUrl);
 
-        function addSectorColumn(tableId) {
-            if (!canManageSectorTables()) return;
+            if (!embedUrl) {
+                alert('❌ رابط غير صحيح. ضع رابط Google Sheets مثل:\nhttps://docs.google.com/spreadsheets/d/ID/edit');
+                return;
+            }
 
-            db.ref('sectorTables/' + tableId).once('value', snap => {
-                const table = snap.val();
-                if (!table) return;
-
-                const columns = Array.isArray(table.columns) ? table.columns.slice() : [];
-                if (columns.length >= 30) {
-                    alert('❌ الحد الأقصى 30 عموداً.');
+            db.ref('sectorTables/main').set({
+                title: title || 'جدول القطاعات الرئيسي',
+                url: rawUrl,
+                embedUrl: embedUrl,
+                updatedBy: currentAgent || 'ADMIN',
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            }, error => {
+                if (error) {
+                    alert('❌ تعذر حفظ الرابط: ' + error.message);
                     return;
                 }
-
-                const name = prompt('اسم العمود الجديد:', 'عمود جديد');
-                if (name === null) return;
-
-                const cleanName = name.trim().slice(0, 60);
-                if (!cleanName) return;
-
-                columns.push(cleanName);
-
-                const rows = Array.isArray(table.rows) ? table.rows.map(row => {
-                    const r = Array.isArray(row) ? row.slice() : [];
-                    r.push('');
-                    return r;
-                }) : [['']];
-
-                db.ref('sectorTables/' + tableId).update({
-                    columns,
-                    rows,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                    updatedBy: currentAgent
-                });
+                alert('✅ تم حفظ جدول القطاعات. سيظهر مباشرة لجميع الأعضاء.');
             });
         }
 
-        function deleteSectorColumn(tableId, colIndex) {
+        function clearSectorSheet() {
             if (!canManageSectorTables()) return;
-
-            db.ref('sectorTables/' + tableId).once('value', snap => {
-                const table = snap.val();
-                if (!table) return;
-
-                const columns = Array.isArray(table.columns) ? table.columns.slice() : [];
-                if (columns.length <= 1) {
-                    alert('❌ يجب أن يبقى عمود واحد على الأقل.');
-                    return;
-                }
-
-                if (!confirm('حذف العمود "' + (columns[colIndex] || '') + '"؟')) return;
-
-                columns.splice(colIndex, 1);
-
-                const rows = Array.isArray(table.rows) ? table.rows.map(row => {
-                    const r = Array.isArray(row) ? row.slice() : [];
-                    r.splice(colIndex, 1);
-                    return r;
-                }) : [];
-
-                db.ref('sectorTables/' + tableId).update({
-                    columns,
-                    rows,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                    updatedBy: currentAgent
-                });
-            });
-        }
-
-        function addSectorRow(tableId) {
-            if (!canManageSectorTables()) return;
-
-            db.ref('sectorTables/' + tableId).once('value', snap => {
-                const table = snap.val();
-                if (!table) return;
-
-                const columns = Array.isArray(table.columns) ? table.columns : [];
-                const rows = Array.isArray(table.rows) ? table.rows.slice() : [];
-
-                if (rows.length >= 500) {
-                    alert('❌ الحد الأقصى 500 صف.');
-                    return;
-                }
-
-                rows.push(columns.map(() => ''));
-
-                db.ref('sectorTables/' + tableId).update({
-                    rows,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                    updatedBy: currentAgent
-                });
-            });
-        }
-
-        function deleteSectorRow(tableId, rowIndex) {
-            if (!canManageSectorTables()) return;
-            if (!confirm('حذف هذا الصف؟')) return;
-
-            db.ref('sectorTables/' + tableId).once('value', snap => {
-                const table = snap.val();
-                if (!table) return;
-
-                const rows = Array.isArray(table.rows) ? table.rows.slice() : [];
-                rows.splice(rowIndex, 1);
-
-                db.ref('sectorTables/' + tableId).update({
-                    rows,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                    updatedBy: currentAgent
-                });
-            });
-        }
-
-        function updateSectorColumn(tableId, colIndex, value) {
-            if (!canManageSectorTables()) return;
-
-            const clean = String(value ?? '').replace(/\n/g, ' ').slice(0, 60);
-            db.ref('sectorTables/' + tableId + '/columns/' + colIndex).set(clean);
-            db.ref('sectorTables/' + tableId).update({
-                updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                updatedBy: currentAgent
-            });
-        }
-
-        function updateSectorCellFromEl(el) {
-            if (!el || !canManageSectorTables()) return;
-
-            const tableId = el.dataset.table;
-            const rowIndex = Number(el.dataset.row);
-            const colIndex = Number(el.dataset.col);
-
-            if (!tableId || !Number.isInteger(rowIndex) || !Number.isInteger(colIndex)) return;
-
-            const value = String(el.innerText || '').replace(/\n/g, ' ').slice(0, 500);
-
-            db.ref('sectorTables/' + tableId + '/rows/' + rowIndex + '/' + colIndex).set(value);
-            db.ref('sectorTables/' + tableId).update({
-                updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                updatedBy: currentAgent
+            if (!confirm('⚠️ هل تريد إزالة جدول القطاعات من الموقع؟')) return;
+            db.ref('sectorTables/main').remove(error => {
+                if (error) alert('❌ تعذر إزالة الجدول: ' + error.message);
             });
         }
 
@@ -7394,143 +7247,57 @@
             const box = document.getElementById('sectorTablesList');
             if (!box) return;
 
-            const ids = Object.keys(data || {});
             const admin = canManageSectorTables();
+            const table = data || {};
+            const title = String(table.title || 'جدول القطاعات الرئيسي');
+            const url = String(table.url || '');
+            const embedUrl = String(table.embedUrl || normalizeSectorSheetUrl(url));
 
-            if (!ids.length) {
-                box.innerHTML = '<div class="sector-empty">لا توجد جداول حالياً. ' +
-                    (admin ? 'اضغط «إنشاء جدول جديد» للبدء.' : 'بانتظار إنشاء جداول من ADMIN.') +
-                    '</div>';
+            let html = '';
+
+            if (admin) {
+                html += `
+                    <div class="sector-sheet-admin-box">
+                        <div class="sector-sheet-admin-title">🔐 إعدادات جدول القطاعات — ADMIN</div>
+                        <label for="sectorSheetTitleInput">اسم الجدول</label>
+                        <input id="sectorSheetTitleInput" type="text" maxlength="100" value="${escapeHtmlAttr(title)}" placeholder="مثال: جدول قطاعات CIA">
+                        <label for="sectorSheetUrlInput">رابط الجدول الرئيسي Google Sheets</label>
+                        <input id="sectorSheetUrlInput" type="url" value="${escapeHtmlAttr(url)}" placeholder="https://docs.google.com/spreadsheets/d/.../edit">
+                        <div class="sector-sheet-admin-actions">
+                            <button class="main-btn" type="button" onclick="saveSectorSheet()">💾 حفظ الجدول</button>
+                            <button class="main-btn" type="button" onclick="refreshSectorTables()">🔄 تحديث</button>
+                            ${url ? '<button class="btn-delete" type="button" onclick="clearSectorSheet()">🗑️ إزالة الجدول</button>' : ''}
+                        </div>
+                        <div class="sector-admin-note">💡 الأفضل جعل Google Sheet متاحاً للعرض أو استخدام «Publish to web» حتى يظهر داخل الموقع لجميع الأعضاء.</div>
+                    </div>`;
+            }
+
+            if (!embedUrl) {
+                html += '<div class="sector-empty">' + (admin ? 'ضع رابط Google Sheets أعلاه ثم اضغط «حفظ الجدول».': 'لا يوجد جدول قطاعات مضاف حالياً.') + '</div>';
+                box.innerHTML = html;
                 return;
             }
 
-            box.innerHTML = ids.map(tableId => {
-                const table = data[tableId] || {};
-                const columns = Array.isArray(table.columns) && table.columns.length
-                    ? table.columns
-                    : ['الاسم'];
-                const rows = Array.isArray(table.rows) ? table.rows : [];
-
-                const headerCells = columns.map((col, colIndex) => `
-                    <th>
-                        <div ${admin ? `contenteditable="true" data-table="${escapeHtml(tableId)}" data-col="${colIndex}" onblur="updateSectorColumn(this.dataset.table,Number(this.dataset.col),this.innerText)"` : ''}>
-                            ${escapeHtml(col || '')}
+            html += `
+                <div class="sector-table-card">
+                    <div class="sector-table-head">
+                        <div>
+                            <div class="sector-table-title">📊 ${escapeHtml(title)}</div>
+                            <div class="sector-table-meta">Google Sheets • يتم تحديث العرض عند إعادة فتح/تحديث الصفحة</div>
                         </div>
-                        ${admin ? `<button type="button" class="sector-delete-row" title="حذف العمود" onclick="deleteSectorColumn('${escapeHtml(tableId)}',${colIndex})">×</button>` : ''}
-                    </th>
-                `).join('');
-
-                const body = rows.length ? rows.map((row, rowIndex) => {
-                    const safeRow = Array.isArray(row) ? row : [];
-                    const cells = columns.map((_, colIndex) => {
-                        const value = safeRow[colIndex] ?? '';
-                        return `<td ${admin ? `contenteditable="true" data-table="${escapeHtml(tableId)}" data-row="${rowIndex}" data-col="${colIndex}" onblur="updateSectorCellFromEl(this)"` : ''}>${escapeHtml(value)}</td>`;
-                    }).join('');
-
-                    return `<tr>${cells}${admin ? `<td class="sector-row-actions"><button type="button" class="sector-delete-row" title="حذف الصف" onclick="deleteSectorRow('${escapeHtml(tableId)}',${rowIndex})">🗑️</button></td>` : ''}</tr>`;
-                }).join('') : `<tr><td colspan="${columns.length + (admin ? 1 : 0)}" class="sector-empty">الجدول فارغ</td></tr>`;
-
-                return `
-                    <div class="sector-table-card">
-                        <div class="sector-table-head">
-                            <div>
-                                <div class="sector-table-title">📊 ${escapeHtml(table.title || 'جدول بدون اسم')}</div>
-                                <div class="sector-table-meta">${rows.length} صف × ${columns.length} أعمدة</div>
-                            </div>
-                            ${admin ? `
-                                <div class="sector-table-actions">
-                                    <button type="button" onclick="addSectorRow('${escapeHtml(tableId)}')">➕ صف</button>
-                                    <button type="button" onclick="addSectorColumn('${escapeHtml(tableId)}')">➕ عمود</button>
-                                    <button type="button" onclick="renameSectorTable('${escapeHtml(tableId)}')">✏️ الاسم</button>
-                                    <button type="button" class="danger" onclick="deleteSectorTable('${escapeHtml(tableId)}')">🗑️ حذف الجدول</button>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="sector-table-wrap">
-                            <table class="sector-grid">
-                                <thead><tr>${headerCells}${admin ? '<th class="sector-row-actions">حذف</th>' : ''}</tr></thead>
-                                <tbody>${body}</tbody>
-                            </table>
+                        <div class="sector-table-actions">
+                            <a href="${escapeHtmlAttr(url || embedUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+                                <button type="button">↗ فتح الجدول الأصلي</button>
+                            </a>
                         </div>
                     </div>
-                `;
-            }).join('');
+                    <div class="sector-sheet-frame-wrap">
+                        <iframe class="sector-sheet-frame" src="${escapeHtmlAttr(embedUrl)}" title="${escapeHtmlAttr(title)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>`;
+
+            box.innerHTML = html;
         }
-
-        function updatePermissionUI() {
-
-            const reportSection = document.getElementById('adminReportsSection');
-            const usersSection = document.getElementById('adminUsersSection');
-            const criminalCreateButton = document.getElementById('newCriminalBtn');
-            const wantedAddButton = document.querySelector('button[onclick="toggleWantedForm()"]');
-            const wantedForm = document.getElementById('addWantedForm');
-
-            if (reportSection) reportSection.style.display = 'block';
-            if (usersSection) usersSection.style.display = isAdmin() ? 'block' : 'none';
-
-            const adminUsersNavButton = document.getElementById('adminUsersNavButton');
-            if (adminUsersNavButton) adminUsersNavButton.style.display = isAdmin() ? 'block' : 'none';
-
-            const sectorAdminControls = document.getElementById('sectorAdminControls');
-            if (sectorAdminControls) sectorAdminControls.style.display = isAdmin() ? 'block' : 'none';
-
-            const sectorTablesCategoryButton = document.getElementById('sectorTablesCategoryButton');
-            if (sectorTablesCategoryButton) sectorTablesCategoryButton.style.display = canUseSystem() ? 'block' : 'none';
-
-            if (criminalCreateButton)
-                criminalCreateButton.style.display = hasPermission('createRecords') ? 'block' : 'none';
-
-            if (wantedAddButton)
-                wantedAddButton.style.display = hasPermission('createWanted') ? 'inline-block' : 'none';
-
-            if (wantedForm && !hasPermission('createWanted'))
-                wantedForm.style.display = 'none';
-
-            const reportSubmit = document.querySelector('button[onclick="submitReport()"]');
-            if (reportSubmit) reportSubmit.style.display = hasPermission('createReports') ? 'block' : 'none';
-
-            ['reportTitle','reportContent','reportImage','reportVideoUrl','reportCitizenId'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.disabled = !hasPermission('createReports');
-            });
-
-            const gangButton = document.getElementById('addGangButton');
-            if (gangButton) gangButton.style.display = hasPermission('createGang') ? 'block' : 'none';
-
-            const chatCategory = document.getElementById('chatCategoryButton');
-            const chatNav = document.getElementById('chatNavButton');
-            if (chatCategory) chatCategory.classList.toggle('cia-chat-category-hidden', !canUseChat());
-            if (chatNav) chatNav.style.display = canUseChat() ? 'block' : 'none';
-
-            // عند امتلاك أكثر من رتبة، نُظهر كل الأقسام المسموح بها.
-            const allCategories = document.querySelectorAll('.cia-category');
-            allCategories.forEach(btn => {
-                if (canUseChat() && !(currentRoles.length === 1 && currentRoles.includes('chat'))) {
-                    btn.classList.remove('cia-chat-category-hidden');
-                }
-            });
-
-            if (currentRoles.length === 1 && currentRoles.includes('chat')) {
-                const restricted = [
-                    'commandCenterPanel','wantedSection','criminalSection',
-                    'reportsCreateSection','gangSection','penaltiesSection',
-                    'onlineSection','sectorTablesSection','adminReportsSection','adminUsersSection'
-                ];
-                restricted.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                });
-
-                const grid = document.querySelector('.cia-category-grid');
-                if (grid) {
-                    grid.querySelectorAll('.cia-category').forEach(btn => {
-                        if (btn.id !== 'chatCategoryButton')
-                            btn.classList.add('cia-chat-category-hidden');
-                    });
-                }
-            }
-        }
-
 
         /* =========================================================
            ENCRYPTION
