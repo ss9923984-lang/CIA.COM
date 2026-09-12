@@ -1376,234 +1376,44 @@
         .rank-chat{color:#fff!important;background:#4a247a!important;border-color:#a970ff!important}
         .cia-chat-category-hidden{display:none!important}
         @media(max-width:560px){.cia-chat-box{height:360px}.cia-chat-message{max-width:92%}.cia-chat-compose{grid-template-columns:1fr}}
-</style>
+
+        /* =========================================================
+           CIA SECTOR TABLES — GOOGLE SHEETS STYLE
+           الإدارة: ADMIN فقط | العرض: جميع الأعضاء
+           ========================================================= */
+        .cia-sector-tables-panel{margin-top:0}
+        .sector-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+        .sector-admin-note{padding:10px 12px;border:1px solid #30496d;border-radius:8px;background:#0b1322;color:#9fb0c7;font-size:11px;line-height:1.7}
+        .sector-table-card{border:1px solid #263b61;border-radius:10px;background:#0a101d;margin:14px 0;overflow:hidden}
+        .sector-table-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(180deg,#111d33,#0b1322);border-bottom:1px solid #263b61}
+        .sector-table-title{font-weight:800;color:var(--accent-gold);font-size:14px}
+        .sector-table-actions{display:flex;gap:6px;flex-wrap:wrap}
+        .sector-table-actions button{padding:6px 9px;border-radius:6px;border:1px solid #30496d;background:#111a2b;color:#dce7f5;cursor:pointer;font-size:10px}
+        .sector-table-actions button:hover{border-color:var(--accent-blue)}
+        .sector-table-actions .danger{border-color:#7d3030;color:#ff9c9c}
+        .sector-table-wrap{overflow:auto}
+        .sector-grid{width:100%;border-collapse:collapse;min-width:620px}
+        .sector-grid th,.sector-grid td{border:1px solid #26344e;padding:8px 9px;text-align:right;vertical-align:top}
+        .sector-grid th{background:#111a2b;color:#d4af37;font-size:11px;white-space:nowrap}
+        .sector-grid td{background:#0b1220;color:#dce7f5;font-size:11px;min-width:120px}
+        .sector-grid tbody tr:nth-child(even) td{background:#0d1525}
+        .sector-grid td[contenteditable="true"]:focus,.sector-grid th [contenteditable="true"]:focus{outline:1px solid var(--accent-blue);box-shadow:inset 0 0 0 1px rgba(0,136,255,.25)}
+        .sector-row-actions{width:55px!important;min-width:55px!important;text-align:center!important}
+        .sector-delete-row{border:0;background:transparent;color:#ff7777;cursor:pointer;font-size:14px}
+        .sector-empty{padding:24px;text-align:center;color:#7f91aa;font-size:12px}
+        .sector-admin-only{display:none}
+        .sector-table-meta{color:#7f91aa;font-size:10px;margin-top:3px}
+        @media(max-width:700px){
+            .sector-table-head{align-items:flex-start;flex-direction:column}
+            .sector-table-actions{width:100%}
+        }
+
+    </style>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-<style>
-
-/* ===== CIA PC DESKTOP UI — visual layer only ===== */
-@media (min-width: 701px) {
-  body:has(#mdtScreen[style*="display: block"]) {
-    padding: 0;
-    align-items: stretch;
-    justify-content: stretch;
-    overflow: hidden;
-  }
-  #mdtScreen {
-    width: 100vw !important;
-    max-width: none !important;
-    min-height: 100vh !important;
-    height: 100vh;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    border: 0 !important;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at 20% 20%, rgba(0,110,255,.13), transparent 28%),
-      radial-gradient(circle at 80% 70%, rgba(212,175,55,.06), transparent 25%),
-      linear-gradient(135deg,#07101d 0%,#0a1424 48%,#050b14 100%);
-  }
-  #mdtScreen::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
-    background-size: 32px 32px;
-    z-index: 0;
-  }
-  #mdtScreen > * { position: relative; z-index: 1; }
-
-  #mdtScreen > header {
-    height: 58px;
-    min-height: 58px;
-    box-sizing: border-box;
-    padding: 8px 18px !important;
-    background: rgba(5,10,18,.92) !important;
-    border-bottom: 1px solid rgba(212,175,55,.55) !important;
-    box-shadow: 0 5px 20px rgba(0,0,0,.35);
-    backdrop-filter: blur(12px);
-  }
-  #mdtScreen > header .header-logo { width: 34px !important; height: 34px !important; }
-  #mdtScreen > header strong { font-size: 14px; }
-  #mdtScreen > header .agent-info { font-size: 11px; }
-
-  /* Windows-style desktop icon area */
-  .cia-category-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 100px) !important;
-    grid-auto-rows: 100px;
-    gap: 8px 14px !important;
-    width: 220px;
-    margin: 0 !important;
-    padding: 22px 18px !important;
-    position: absolute !important;
-    top: 58px;
-    left: 0;
-    z-index: 10 !important;
-  }
-  .cia-category {
-    min-height: 92px !important;
-    width: 100px;
-    height: 92px;
-    padding: 7px 5px !important;
-    border: 1px solid transparent !important;
-    border-radius: 8px !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    text-align: center !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    color: #dbe8f7;
-  }
-  .cia-category:hover {
-    transform: none !important;
-    background: rgba(40,120,210,.16) !important;
-    border-color: rgba(80,160,255,.35) !important;
-    box-shadow: 0 0 16px rgba(0,120,255,.12) !important;
-  }
-  .cia-category b {
-    width: 48px;
-    height: 48px;
-    margin: 0 !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    border-radius: 11px;
-    background: linear-gradient(145deg,#182b46,#0a1527);
-    border: 1px solid #355274;
-    box-shadow: 0 7px 18px rgba(0,0,0,.28), inset 0 0 12px rgba(0,150,255,.08);
-    font-size: 0;
-    position: relative;
-  }
-  .cia-category b::first-letter { font-size: 25px; }
-  .cia-category:nth-child(1) b::before { content:"📝"; font-size:24px; }
-  .cia-category:nth-child(2) b::before { content:"🚨"; font-size:24px; }
-  .cia-category:nth-child(3) b::before { content:"📂"; font-size:24px; }
-  .cia-category:nth-child(4) b::before { content:"🕵️"; font-size:24px; }
-  .cia-category:nth-child(5) b::before { content:"⚖️"; font-size:24px; }
-  .cia-category:nth-child(6) b::before { content:"👥"; font-size:24px; }
-  .cia-category:nth-child(7) b::before { content:"💬"; font-size:24px; }
-  .cia-category small {
-    color: #d5dfec !important;
-    font-size: 10px !important;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 96px;
-  }
-  .cia-category small::after { content: ""; }
-
-  .cia-category-home {
-    min-height: calc(100vh - 58px) !important;
-    height: calc(100vh - 58px) !important;
-    box-sizing: border-box;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: 0 !important;
-  }
-  .cia-category-home-head {
-    position: absolute;
-    left: 255px;
-    top: 78px;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    display: block !important;
-  }
-  .cia-category-home-head h2 {
-    font-size: 28px !important;
-    letter-spacing: 1px;
-    text-shadow: 0 3px 16px rgba(0,0,0,.55);
-  }
-  .cia-category-home-head p { color:#7f93aa !important; }
-  .cia-desktop-badge {
-    margin-top: 10px;
-    display: inline-block;
-    font-size: 9px !important;
-    opacity: .7;
-  }
-  .cia-back-btn {
-    margin: 0 !important;
-    border-radius: 5px !important;
-  }
-
-  /* Open application = desktop window */
-  #ciaWorkspace {
-    position: absolute !important;
-    inset: 58px 0 0 0;
-    width: auto !important;
-    height: calc(100vh - 58px);
-    box-sizing: border-box;
-    display: none;
-    grid-template-columns: 1fr !important;
-    gap: 0 !important;
-    padding: 52px 24px 24px !important;
-    overflow: auto;
-    background: rgba(4,10,18,.38);
-  }
-  #ciaWorkspace::before {
-    content: "CIA APPLICATION";
-    position: absolute;
-    top: 12px;
-    left: 20px;
-    right: 20px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    padding-left: 14px;
-    box-sizing: border-box;
-    background: linear-gradient(180deg,#15243a,#0b1423);
-    border: 1px solid #263b61;
-    border-radius: 8px 8px 0 0;
-    color: #a9bad0;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-  }
-  #ciaWorkspace .cia-back-btn {
-    position: absolute;
-    top: 17px;
-    right: 28px;
-    z-index: 5;
-    padding: 5px 10px !important;
-    font-size: 10px !important;
-    background: #18283e !important;
-    border: 1px solid #38516f !important;
-  }
-  #ciaWorkspace .tools-section {
-    min-width: 0;
-    padding: 0 !important;
-  }
-  #ciaWorkspace .mdt-nav { display: none !important; }
-  #ciaWorkspace > .tools-section,
-  #ciaWorkspace > *:not(.cia-back-btn):not(.tools-section) {
-    max-width: 1400px;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* Make existing content look like a window/card without changing it */
-  #ciaWorkspace section,
-  #ciaWorkspace .panel,
-  #ciaWorkspace .card,
-  #ciaWorkspace .tool-card {
-    border-radius: 8px;
-  }
-}
-
-</style>
 </head>
 
 <body>
@@ -1764,6 +1574,9 @@
     <button class="cia-category" onclick="goToSection('onlineSection')">
         <b>📁 USERS</b><small>الأعضاء والمتصلون</small>
     </button>
+    <button class="cia-category" id="sectorTablesCategoryButton" onclick="goToSection('sectorTablesSection')">
+        <b>📊 SECTORS</b><small>جداول القطاعات</small>
+    </button>
     <button class="cia-category cia-chat-category-hidden" id="chatCategoryButton" onclick="goToSection('chatSection')">
         <b>💬 CHAT</b><small>المحادثة الداخلية</small>
     </button>
@@ -1816,6 +1629,9 @@
 
                     <button onclick="goToSection('onlineSection')">
                         👥 العناصر Online
+                    </button>
+                    <button onclick="goToSection('sectorTablesSection')">
+                        📊 جداول القطاعات
                     </button>
                     <button onclick="goToSection('chatSection')" id="chatNavButton" style="display:none;">
                         💬 CIA CHAT
@@ -2588,6 +2404,45 @@
                 </div>
 
 
+                <!-- CIA SECTOR TABLES -->
+
+                <div class="panel admin-panel cia-sector-tables-panel"
+                     id="sectorTablesSection"
+                     style="display:none;">
+
+                    <div class="section-title-bar">
+                        <div>
+                            <h3 style="color:var(--accent-gold);margin-bottom:4px;">
+                                📊 جداول القطاعات
+                            </h3>
+                            <small style="color:#8a9ba8;">
+                                نظام جداول مباشر شبيه بـ Sheets — كل تعديل يظهر لجميع الأعضاء فوراً.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div id="sectorAdminControls" class="sector-admin-only">
+                        <div class="sector-toolbar">
+                            <button class="main-btn" type="button" onclick="createSectorTable()">
+                                ➕ إنشاء جدول جديد
+                            </button>
+                            <button class="main-btn" type="button" onclick="refreshSectorTables()">
+                                🔄 تحديث
+                            </button>
+                        </div>
+                        <div class="sector-admin-note">
+                            🔐 <b>ADMIN فقط:</b> يمكنك إنشاء الجداول، تغيير أسمائها، إضافة/حذف الأعمدة والصفوف، وتعديل الخانات.
+                            الأعضاء الآخرون يستطيعون مشاهدة الجداول فقط.
+                        </div>
+                    </div>
+
+                    <div id="sectorTablesList">
+                        <div class="sector-empty">جاري تحميل جداول القطاعات...</div>
+                    </div>
+
+                </div>
+
+
                 <div class="panel">
 
                     <h3>
@@ -2804,6 +2659,9 @@
         let allGangsCache = [];
 
         let editingGangId = null;
+
+        // CIA Sector Tables
+        let sectorTablesListenerRef = null;
 
 
         /* =========================================================
@@ -3153,6 +3011,7 @@
                     listenToUsers();
                     listenToWanted();
                     listenToGangs();
+                    listenToSectorTables();
                     initPenalCalculator();
                 }
 
@@ -3424,6 +3283,10 @@
                 return;
             }
 
+            if (id === 'sectorTablesSection' && !canUseSystem()) {
+                return;
+            }
+
             if (id === 'chatSection' && !canUseChat()) {
                 alert('❌ هذه الصفحة متاحة فقط لرتبة CHAT أو ADMIN.');
                 return;
@@ -3470,6 +3333,11 @@
             if (chatListenerRef) {
                 chatListenerRef.off();
                 chatListenerRef = null;
+            }
+
+            if (sectorTablesListenerRef) {
+                sectorTablesListenerRef.off();
+                sectorTablesListenerRef = null;
             }
             chatListenerStarted = false;
             systemListenersStarted = false;
@@ -7293,6 +7161,300 @@
             });
         }
 
+
+        /* =========================================================
+           CIA SECTOR TABLES
+           ========================================================= */
+
+        function canManageSectorTables() {
+            return isAdmin();
+        }
+
+        function refreshSectorTables() {
+            if (!canManageSectorTables() && !canUseSystem()) return;
+
+            if (sectorTablesListenerRef) {
+                sectorTablesListenerRef.off();
+                sectorTablesListenerRef = null;
+            }
+            listenToSectorTables(true);
+        }
+
+        function listenToSectorTables(force = false) {
+            if (!canUseSystem()) return;
+            if (sectorTablesListenerRef && !force) return;
+
+            if (sectorTablesListenerRef) sectorTablesListenerRef.off();
+
+            sectorTablesListenerRef = db.ref('sectorTables');
+            sectorTablesListenerRef.on('value', snapshot => {
+                renderSectorTables(snapshot.val() || {});
+            });
+        }
+
+        function createSectorTable() {
+            if (!canManageSectorTables()) {
+                alert('❌ إنشاء وتعديل جداول القطاعات متاح للـ ADMIN فقط.');
+                return;
+            }
+
+            const title = prompt('اسم الجدول الجديد:', 'قطاع جديد');
+            if (title === null) return;
+
+            const cleanTitle = title.trim().slice(0, 80);
+            if (!cleanTitle) {
+                alert('❌ يجب كتابة اسم للجدول.');
+                return;
+            }
+
+            db.ref('sectorTables').push().set({
+                title: cleanTitle,
+                columns: ['الاسم', 'الرتبة', 'الحالة'],
+                rows: [['', '', '']],
+                createdBy: currentAgent,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedBy: currentAgent
+            }, error => {
+                if (error) alert('❌ تعذر إنشاء الجدول.');
+            });
+        }
+
+        function renameSectorTable(tableId) {
+            if (!canManageSectorTables()) return;
+
+            db.ref('sectorTables/' + tableId + '/title').once('value', snap => {
+                const title = prompt('اسم الجدول:', snap.val() || '');
+                if (title === null) return;
+
+                const cleanTitle = title.trim().slice(0, 80);
+                if (!cleanTitle) return alert('❌ اسم الجدول لا يمكن أن يكون فارغاً.');
+
+                db.ref('sectorTables/' + tableId).update({
+                    title: cleanTitle,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedBy: currentAgent
+                });
+            });
+        }
+
+        function deleteSectorTable(tableId) {
+            if (!canManageSectorTables()) return;
+            if (!confirm('⚠️ هل أنت متأكد من حذف هذا الجدول بالكامل؟')) return;
+
+            db.ref('sectorTables/' + tableId).remove(error => {
+                if (error) alert('❌ تعذر حذف الجدول.');
+            });
+        }
+
+        function addSectorColumn(tableId) {
+            if (!canManageSectorTables()) return;
+
+            db.ref('sectorTables/' + tableId).once('value', snap => {
+                const table = snap.val();
+                if (!table) return;
+
+                const columns = Array.isArray(table.columns) ? table.columns.slice() : [];
+                if (columns.length >= 30) {
+                    alert('❌ الحد الأقصى 30 عموداً.');
+                    return;
+                }
+
+                const name = prompt('اسم العمود الجديد:', 'عمود جديد');
+                if (name === null) return;
+
+                const cleanName = name.trim().slice(0, 60);
+                if (!cleanName) return;
+
+                columns.push(cleanName);
+
+                const rows = Array.isArray(table.rows) ? table.rows.map(row => {
+                    const r = Array.isArray(row) ? row.slice() : [];
+                    r.push('');
+                    return r;
+                }) : [['']];
+
+                db.ref('sectorTables/' + tableId).update({
+                    columns,
+                    rows,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedBy: currentAgent
+                });
+            });
+        }
+
+        function deleteSectorColumn(tableId, colIndex) {
+            if (!canManageSectorTables()) return;
+
+            db.ref('sectorTables/' + tableId).once('value', snap => {
+                const table = snap.val();
+                if (!table) return;
+
+                const columns = Array.isArray(table.columns) ? table.columns.slice() : [];
+                if (columns.length <= 1) {
+                    alert('❌ يجب أن يبقى عمود واحد على الأقل.');
+                    return;
+                }
+
+                if (!confirm('حذف العمود "' + (columns[colIndex] || '') + '"؟')) return;
+
+                columns.splice(colIndex, 1);
+
+                const rows = Array.isArray(table.rows) ? table.rows.map(row => {
+                    const r = Array.isArray(row) ? row.slice() : [];
+                    r.splice(colIndex, 1);
+                    return r;
+                }) : [];
+
+                db.ref('sectorTables/' + tableId).update({
+                    columns,
+                    rows,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedBy: currentAgent
+                });
+            });
+        }
+
+        function addSectorRow(tableId) {
+            if (!canManageSectorTables()) return;
+
+            db.ref('sectorTables/' + tableId).once('value', snap => {
+                const table = snap.val();
+                if (!table) return;
+
+                const columns = Array.isArray(table.columns) ? table.columns : [];
+                const rows = Array.isArray(table.rows) ? table.rows.slice() : [];
+
+                if (rows.length >= 500) {
+                    alert('❌ الحد الأقصى 500 صف.');
+                    return;
+                }
+
+                rows.push(columns.map(() => ''));
+
+                db.ref('sectorTables/' + tableId).update({
+                    rows,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedBy: currentAgent
+                });
+            });
+        }
+
+        function deleteSectorRow(tableId, rowIndex) {
+            if (!canManageSectorTables()) return;
+            if (!confirm('حذف هذا الصف؟')) return;
+
+            db.ref('sectorTables/' + tableId).once('value', snap => {
+                const table = snap.val();
+                if (!table) return;
+
+                const rows = Array.isArray(table.rows) ? table.rows.slice() : [];
+                rows.splice(rowIndex, 1);
+
+                db.ref('sectorTables/' + tableId).update({
+                    rows,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedBy: currentAgent
+                });
+            });
+        }
+
+        function updateSectorColumn(tableId, colIndex, value) {
+            if (!canManageSectorTables()) return;
+
+            const clean = String(value ?? '').replace(/\n/g, ' ').slice(0, 60);
+            db.ref('sectorTables/' + tableId + '/columns/' + colIndex).set(clean);
+            db.ref('sectorTables/' + tableId).update({
+                updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedBy: currentAgent
+            });
+        }
+
+        function updateSectorCellFromEl(el) {
+            if (!el || !canManageSectorTables()) return;
+
+            const tableId = el.dataset.table;
+            const rowIndex = Number(el.dataset.row);
+            const colIndex = Number(el.dataset.col);
+
+            if (!tableId || !Number.isInteger(rowIndex) || !Number.isInteger(colIndex)) return;
+
+            const value = String(el.innerText || '').replace(/\n/g, ' ').slice(0, 500);
+
+            db.ref('sectorTables/' + tableId + '/rows/' + rowIndex + '/' + colIndex).set(value);
+            db.ref('sectorTables/' + tableId).update({
+                updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedBy: currentAgent
+            });
+        }
+
+        function renderSectorTables(data) {
+            const box = document.getElementById('sectorTablesList');
+            if (!box) return;
+
+            const ids = Object.keys(data || {});
+            const admin = canManageSectorTables();
+
+            if (!ids.length) {
+                box.innerHTML = '<div class="sector-empty">لا توجد جداول حالياً. ' +
+                    (admin ? 'اضغط «إنشاء جدول جديد» للبدء.' : 'بانتظار إنشاء جداول من ADMIN.') +
+                    '</div>';
+                return;
+            }
+
+            box.innerHTML = ids.map(tableId => {
+                const table = data[tableId] || {};
+                const columns = Array.isArray(table.columns) && table.columns.length
+                    ? table.columns
+                    : ['الاسم'];
+                const rows = Array.isArray(table.rows) ? table.rows : [];
+
+                const headerCells = columns.map((col, colIndex) => `
+                    <th>
+                        <div ${admin ? `contenteditable="true" data-table="${escapeHtml(tableId)}" data-col="${colIndex}" onblur="updateSectorColumn(this.dataset.table,Number(this.dataset.col),this.innerText)"` : ''}>
+                            ${escapeHtml(col || '')}
+                        </div>
+                        ${admin ? `<button type="button" class="sector-delete-row" title="حذف العمود" onclick="deleteSectorColumn('${escapeHtml(tableId)}',${colIndex})">×</button>` : ''}
+                    </th>
+                `).join('');
+
+                const body = rows.length ? rows.map((row, rowIndex) => {
+                    const safeRow = Array.isArray(row) ? row : [];
+                    const cells = columns.map((_, colIndex) => {
+                        const value = safeRow[colIndex] ?? '';
+                        return `<td ${admin ? `contenteditable="true" data-table="${escapeHtml(tableId)}" data-row="${rowIndex}" data-col="${colIndex}" onblur="updateSectorCellFromEl(this)"` : ''}>${escapeHtml(value)}</td>`;
+                    }).join('');
+
+                    return `<tr>${cells}${admin ? `<td class="sector-row-actions"><button type="button" class="sector-delete-row" title="حذف الصف" onclick="deleteSectorRow('${escapeHtml(tableId)}',${rowIndex})">🗑️</button></td>` : ''}</tr>`;
+                }).join('') : `<tr><td colspan="${columns.length + (admin ? 1 : 0)}" class="sector-empty">الجدول فارغ</td></tr>`;
+
+                return `
+                    <div class="sector-table-card">
+                        <div class="sector-table-head">
+                            <div>
+                                <div class="sector-table-title">📊 ${escapeHtml(table.title || 'جدول بدون اسم')}</div>
+                                <div class="sector-table-meta">${rows.length} صف × ${columns.length} أعمدة</div>
+                            </div>
+                            ${admin ? `
+                                <div class="sector-table-actions">
+                                    <button type="button" onclick="addSectorRow('${escapeHtml(tableId)}')">➕ صف</button>
+                                    <button type="button" onclick="addSectorColumn('${escapeHtml(tableId)}')">➕ عمود</button>
+                                    <button type="button" onclick="renameSectorTable('${escapeHtml(tableId)}')">✏️ الاسم</button>
+                                    <button type="button" class="danger" onclick="deleteSectorTable('${escapeHtml(tableId)}')">🗑️ حذف الجدول</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="sector-table-wrap">
+                            <table class="sector-grid">
+                                <thead><tr>${headerCells}${admin ? '<th class="sector-row-actions">حذف</th>' : ''}</tr></thead>
+                                <tbody>${body}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function updatePermissionUI() {
 
             const reportSection = document.getElementById('adminReportsSection');
@@ -7306,6 +7468,12 @@
 
             const adminUsersNavButton = document.getElementById('adminUsersNavButton');
             if (adminUsersNavButton) adminUsersNavButton.style.display = isAdmin() ? 'block' : 'none';
+
+            const sectorAdminControls = document.getElementById('sectorAdminControls');
+            if (sectorAdminControls) sectorAdminControls.style.display = isAdmin() ? 'block' : 'none';
+
+            const sectorTablesCategoryButton = document.getElementById('sectorTablesCategoryButton');
+            if (sectorTablesCategoryButton) sectorTablesCategoryButton.style.display = canUseSystem() ? 'block' : 'none';
 
             if (criminalCreateButton)
                 criminalCreateButton.style.display = hasPermission('createRecords') ? 'block' : 'none';
@@ -7344,7 +7512,7 @@
                 const restricted = [
                     'commandCenterPanel','wantedSection','criminalSection',
                     'reportsCreateSection','gangSection','penaltiesSection',
-                    'onlineSection','adminReportsSection','adminUsersSection'
+                    'onlineSection','sectorTablesSection','adminReportsSection','adminUsersSection'
                 ];
                 restricted.forEach(id => {
                     const el = document.getElementById(id);
@@ -7423,33 +7591,6 @@
         });
 
     </script>
-
-
-<script>
-/* CIA PC UI helper: keeps the existing functions/data and only updates the visual desktop state. */
-(function(){
-  function syncDesktopUI(){
-    var screen=document.getElementById('mdtScreen');
-    if(!screen) return;
-    var visible=screen.style.display!=='none' && getComputedStyle(screen).display!=='none';
-    document.body.classList.toggle('cia-pc-mode', visible);
-  }
-  var oldShow=window.showCategoryHome;
-  if(typeof oldShow==='function'){
-    window.showCategoryHome=function(){
-      var r=oldShow.apply(this,arguments); syncDesktopUI(); return r;
-    };
-  }
-  var oldGo=window.goToSection;
-  if(typeof oldGo==='function'){
-    window.goToSection=function(){
-      var r=oldGo.apply(this,arguments); syncDesktopUI(); return r;
-    };
-  }
-  setTimeout(syncDesktopUI,300);
-  document.addEventListener('click',function(){setTimeout(syncDesktopUI,30);});
-})();
-</script>
 
 </body>
 </html>
